@@ -86,8 +86,18 @@ jobs:
           chmod +x ./gradlew
           ./gradlew --no-daemon --stacktrace assembleDirectDebug
 
-      - name: Stage APK (stabiler Name)
-        run: cp app/build/outputs/apk/direct/debug/app-direct-debug.apk app-debug.apk
+      # Play-Variante als installierbare Debug-APK (zeigt die Play-UI ohne Kauf-Buttons,
+      # z.B. für Store-Screenshots)
+      - name: Build MoyaVPN debug APK (play)
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: "1.0.${{ github.run_number }}"
+        run: ./gradlew --no-daemon --stacktrace assemblePlayDebug
+
+      - name: Stage APKs (stabile Namen)
+        run: |
+          cp app/build/outputs/apk/direct/debug/app-direct-debug.apk app-debug.apk
+          cp app/build/outputs/apk/play/debug/app-play-debug.apk app-play-debug.apk
 
       - name: Upload APK (Artefakt)
         uses: actions/upload-artifact@v4
@@ -104,7 +114,9 @@ jobs:
         with:
           tag_name: latest
           name: MoyaVPN — neuester Build
-          files: app-debug.apk
+          files: |
+            app-debug.apk
+            app-play-debug.apk
           make_latest: true
 
       # ── Play Store: signierte AAB (nur wenn Upload-Keystore als Secret hinterlegt) ──
