@@ -36,6 +36,16 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # 16-KB-Page-Size: native Libs auf 16 KB ausrichten (Play-Pflicht ab targetSdk 35).
+      # Flag fließt über CMAKE_*_LINKER_FLAGS in libwg/libwg-quick (executables) UND
+      # über CGO_LDFLAGS in libwg-go (Go c-shared).
+      - name: Patch AmneziaWG build for 16 KB page size
+        run: |
+          set -e
+          CM=awg-src/tunnel/tools/CMakeLists.txt
+          sed -i '/project("AmneziaWG")/a string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384")\nstring(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384")' "$CM"
+          echo "---- CMakeLists (Kopf) ----"; head -12 "$CM"
+
       # Baut org.amnezia.awg:tunnel → tunnel-release.aar (libwg-go.so etc.)
       - name: Build AmneziaWG tunnel AAR
         run: |
@@ -49,6 +59,20 @@ jobs:
           ls -la awg-src/tunnel/build/outputs/aar/
           cp awg-src/tunnel/build/outputs/aar/tunnel-release.aar app/libs/awg-tunnel.aar
           echo "AAR bereit:"; ls -la app/libs/
+
+      # Verifizieren: alle 64-bit .so müssen 16 KB (0x4000) ausgerichtet sein
+      - name: Verify 16 KB alignment
+        run: |
+          set -e
+          mkdir -p /tmp/awgcheck && cd /tmp/awgcheck
+          unzip -o "$GITHUB_WORKSPACE/app/libs/awg-tunnel.aar" 'jni/arm64-v8a/*.so' 'jni/x86_64/*.so'
+          fail=0
+          for so in jni/arm64-v8a/*.so jni/x86_64/*.so; do
+            al=$(readelf -lW "$so" | awk '/LOAD/{print $NF}' | sort -u | tr '\n' ' ')
+            echo "$so → $al"
+            echo "$al" | grep -q 0x1000 && { echo "  ✗ 4 KB-Ausrichtung!"; fail=1; }
+          done
+          [ "$fail" = "0" ] && echo "✓ Alle Libs 16 KB-ausgerichtet" || { echo "16-KB-Check fehlgeschlagen"; exit 1; }
 
       # Website/Telegram-Verteilung → 'direct'-Variante (mit Kauf-Link)
       - name: Build MoyaVPN debug APK (direct)
