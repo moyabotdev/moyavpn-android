@@ -24,6 +24,6 @@
     <string name="err_invalid_code">Invalid or expired code.</string>
     <string name="err_server">Could not reach the server. Please try again later.</string>
     <string name="quick_connect">Quick connect (4-hour trial)</string>
-    <string name="trial_notice">4-hour trial active. Get permanent access in @moyavpnbot before it ends — then log out and reconnect.</string>
+    <string name="trial_notice">4-hour trial active. Get a permanent access code before it ends — then log out and reconnect.</string>
     <string name="err_trial_limit">Trial limit reached. Please get access in @moyavpnbot.</string>
 </resources>

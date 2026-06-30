@@ -50,19 +50,23 @@ jobs:
           cp awg-src/tunnel/build/outputs/aar/tunnel-release.aar app/libs/awg-tunnel.aar
           echo "AAR bereit:"; ls -la app/libs/
 
-      - name: Build MoyaVPN debug APK
+      # Website/Telegram-Verteilung → 'direct'-Variante (mit Kauf-Link)
+      - name: Build MoyaVPN debug APK (direct)
         env:
           VERSION_CODE: ${{ github.run_number }}
           VERSION_NAME: "1.0.${{ github.run_number }}"
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daemon --stacktrace assembleDebug
+          ./gradlew --no-daemon --stacktrace assembleDirectDebug
+
+      - name: Stage APK (stabiler Name)
+        run: cp app/build/outputs/apk/direct/debug/app-direct-debug.apk app-debug.apk
 
       - name: Upload APK (Artefakt)
         uses: actions/upload-artifact@v4
         with:
           name: MoyaVPN-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: app-debug.apk
           if-no-files-found: error
 
       # Öffentliches Release mit stabiler Download-URL:
@@ -73,5 +77,5 @@ jobs:
         with:
           tag_name: latest
           name: MoyaVPN — neuester Build
-          files: app/build/outputs/apk/debug/app-debug.apk
+          files: app-debug.apk
           make_latest: true

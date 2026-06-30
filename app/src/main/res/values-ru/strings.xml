@@ -22,6 +22,6 @@
     <string name="err_invalid_code">Неверный или просроченный код.</string>
     <string name="err_server">Не удалось связаться с сервером. Попробуйте позже.</string>
     <string name="quick_connect">Быстрое подключение (тест 4 ч)</string>
-    <string name="trial_notice">Тест на 4 часа активен. Получите постоянный доступ в @moyavpnbot до окончания — затем выйдите и подключитесь заново.</string>
+    <string name="trial_notice">Тест на 4 часа активен. Получите постоянный код доступа до окончания — затем выйдите и подключитесь заново.</string>
     <string name="err_trial_limit">Лимит тестов исчерпан. Получите доступ в @moyavpnbot.</string>
 </resources>

@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.moyavpn.app.BuildConfig
 import com.moyavpn.app.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
@@ -105,13 +106,16 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit, onQuic
             Text(stringResource(R.string.quick_connect))
         }
 
-        Spacer(Modifier.height(20.dp))
-        Text(stringResource(R.string.no_access_yet), style = MaterialTheme.typography.bodySmall)
-        Spacer(Modifier.height(6.dp))
-        TextButton(onClick = onGetAccess) {
-            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.get_access))
+        // „Zugang holen" (führt zum Verkaufskanal) nur in der direct-Variante
+        if (BuildConfig.SHOW_PURCHASE) {
+            Spacer(Modifier.height(20.dp))
+            Text(stringResource(R.string.no_access_yet), style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(6.dp))
+            TextButton(onClick = onGetAccess) {
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.get_access))
+            }
         }
     }
 }
@@ -153,10 +157,13 @@ private fun ReadyView(
                         Text(stringResource(R.string.valid_until, it), style = MaterialTheme.typography.bodySmall)
                     }
                 }
-                FilledTonalButton(onClick = onOpenBot) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.buy_time))
+                // Kauf-Link nur in der direct-Variante (Play-Store: ausgeblendet)
+                if (BuildConfig.SHOW_PURCHASE) {
+                    FilledTonalButton(onClick = onOpenBot) {
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.buy_time))
+                    }
                 }
             }
 
@@ -173,11 +180,13 @@ private fun ReadyView(
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
                             style = MaterialTheme.typography.bodyMedium,
                         )
-                        Spacer(Modifier.height(8.dp))
-                        FilledTonalButton(onClick = onGetAccess) {
-                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.get_access))
+                        if (BuildConfig.SHOW_PURCHASE) {
+                            Spacer(Modifier.height(8.dp))
+                            FilledTonalButton(onClick = onGetAccess) {
+                                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(stringResource(R.string.get_access))
+                            }
                         }
                     }
                 }

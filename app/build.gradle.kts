@@ -41,6 +41,21 @@ android {
         }
     }
 
+    // Verteilungs-Varianten:
+    //  direct = Website/APK/Telegram → voller Funktionsumfang inkl. Kauf-Link
+    //  play   = Google Play Store    → ohne Kauf-Steering (Play-Billing-konform)
+    flavorDimensions += "dist"
+    productFlavors {
+        create("direct") {
+            dimension = "dist"
+            buildConfigField("boolean", "SHOW_PURCHASE", "true")
+        }
+        create("play") {
+            dimension = "dist"
+            buildConfigField("boolean", "SHOW_PURCHASE", "false")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
