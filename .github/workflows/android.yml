@@ -135,10 +135,23 @@ jobs:
           VERSION_NAME: "1.0.${{ github.run_number }}"
         run: ./gradlew --no-daemon --stacktrace bundlePlayRelease
 
+      - name: Stage AAB (stabiler Name)
+        if: env.HAS_KEYSTORE == 'true'
+        run: cp app/build/outputs/bundle/playRelease/app-play-release.aab MoyaVPN.aab
+
       - name: Upload Play AAB
         if: env.HAS_KEYSTORE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: MoyaVPN-play-aab
-          path: app/build/outputs/bundle/playRelease/app-play-release.aab
+          path: MoyaVPN.aab
           if-no-files-found: error
+
+      # Signierte AAB zusätzlich als Datei ans 'latest'-Release hängen → 1-Klick-Download:
+      # https://github.com/moyabotdev/moyavpn-android/releases/download/latest/MoyaVPN.aab
+      - name: Publish AAB to GitHub Release (latest)
+        if: github.ref == 'refs/heads/main' && env.HAS_KEYSTORE == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: MoyaVPN.aab
