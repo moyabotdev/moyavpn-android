@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleDeepLink(intent)
         setContent {
             MoyaTheme {
                 val state by vm.state.collectAsStateWithLifecycle()
@@ -55,6 +56,26 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    /**
+     * Liest den App-Code aus einem Deep Link und loggt automatisch ein.
+     * Unterstützt:
+     *   moyavpn://login?token=<code>
+     *   https://app.moyabot.ru/i/<code>   (oder ?token=<code>)
+     */
+    private fun handleDeepLink(intent: Intent?) {
+        val data = intent?.data ?: return
+        val token = data.getQueryParameter("token")
+            ?: data.pathSegments?.lastOrNull()?.takeIf { it.startsWith("moya_") }
+            ?: return
+        if (token.isNotBlank()) vm.login(token)
     }
 
     /** Beim Verbinden zuerst die VPN-Erlaubnis sicherstellen, beim Trennen direkt. */
