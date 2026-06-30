@@ -25,6 +25,7 @@ sealed interface UiState {
         val connecting: Boolean = false,
         val rxBytes: Long = 0,
         val txBytes: Long = 0,
+        val connectError: String? = null,     // letzter Verbindungsfehler (für Anzeige)
     ) : UiState
 }
 
@@ -101,18 +102,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 _state.value = ready.copy(activeServerId = null, rxBytes = 0, txBytes = 0)
                 return@launch
             }
-            _state.value = ready.copy(connecting = true)
+            _state.value = ready.copy(connecting = true, connectError = null)
             runCatching { TunnelManager.connect(getApplication(), conn.config) }
                 .onSuccess {
                     currentServerId = conn.serverId
                     _state.value = ready.copy(activeServerId = conn.serverId, connecting = false)
                     refreshStats()
                 }
-                .onFailure {
+                .onFailure { e ->
                     currentServerId = null
+                    val reason = (e as? org.amnezia.awg.backend.BackendException)?.reason?.name
+                    val msg = reason ?: "${e.javaClass.simpleName}: ${e.message ?: "unbekannt"}"
                     _state.value = ready.copy(
                         activeServerId = null,
                         connecting = false,
+                        connectError = msg,
                     )
                 }
         }

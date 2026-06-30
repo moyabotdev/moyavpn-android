@@ -108,6 +108,21 @@ private fun ReadyView(state: UiState.Ready, onToggle: (Connection) -> Unit, onLo
                 TrafficBar(state.rxBytes, state.txBytes)
             }
 
+            state.connectError?.let { err ->
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth(),
+                ) {
+                    Text(
+                        "Verbindung fehlgeschlagen: $err",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(12.dp),
+                    )
+                }
+            }
+
             Text(
                 "Deine Verbindungen",
                 style = MaterialTheme.typography.labelLarge,
