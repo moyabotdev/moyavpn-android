@@ -71,8 +71,8 @@ class MainActivity : ComponentActivity() {
     /** „Zeit nachkaufen" → Verlängerungs-Flow im Bot. */
     private fun openRenew() = openUrl("https://t.me/moyavpnbot?start=renew")
 
-    /** Login „Zugang holen" → Bot-Startmenü (Trial/Zugang für neue Nutzer). */
-    private fun openGetAccess() = openUrl("https://t.me/moyavpnbot")
+    /** Login „Zugang holen" → Bot zeigt direkt Code + Verbinden-Link (ein Tap). */
+    private fun openGetAccess() = openUrl("https://t.me/moyavpnbot?start=app")
 
     /** „?" → Support-Chat im Bot. */
     private fun openSupport() = openUrl("https://t.me/moyavpnbot?start=support")
