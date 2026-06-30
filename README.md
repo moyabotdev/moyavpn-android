@@ -4,10 +4,9 @@ Gebrandete VPN-App für MoyaBot. Der Nutzer meldet sich mit einem **App-Zugangsc
 (im MoyaBot generiert) an, sieht alle seine Verbindungen (DE/NL/CH/AT) und schaltet
 den Tunnel mit einem Tipp an/aus.
 
-> **Status: MVP.** Der Tunnel läuft aktuell über den **Standard-WireGuard-Core**
-> (baut zuverlässig, verbindet sich mit WireGuard-Configs). Für die DPI-resistente
-> **AmneziaWG**-Variante (für Russland) gibt es einen klar markierten Swap-Punkt —
-> siehe [AmneziaWG-Umstellung](#amneziawg-umstellung).
+> **Status:** Tunnel läuft über den **AmneziaWG-Core** (`org.amnezia.awg`,
+> DPI-resistent — passend zu euren Servern). Das tunnel-AAR wird in CI aus
+> `amnezia-vpn/amneziawg-android` v2.0.1 gebaut (nativer Go/NDK-Build).
 
 ---
 
