@@ -36,7 +36,7 @@ fun MainScreen(
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when (state) {
             is UiState.Loading -> CenterBox { CircularProgressIndicator() }
-            is UiState.NeedsLogin -> LoginView(onLogin)
+            is UiState.NeedsLogin -> LoginView(onLogin, onOpenBot)
             is UiState.Error -> CenterBox {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(state.message, textAlign = TextAlign.Center)
@@ -55,7 +55,7 @@ private fun CenterBox(content: @Composable BoxScope.() -> Unit) =
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center, content = content)
 
 @Composable
-private fun LoginView(onLogin: (String) -> Unit) {
+private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit) {
     var code by remember { mutableStateOf("") }
     Column(
         Modifier.fillMaxSize().padding(24.dp),
@@ -90,6 +90,18 @@ private fun LoginView(onLogin: (String) -> Unit) {
             enabled = code.isNotBlank(),
             modifier = Modifier.fillMaxWidth().height(52.dp),
         ) { Text("Anmelden") }
+
+        Spacer(Modifier.height(20.dp))
+        Text("Noch keinen Zugang?", style = MaterialTheme.typography.bodySmall)
+        Spacer(Modifier.height(6.dp))
+        OutlinedButton(
+            onClick = onGetAccess,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+        ) {
+            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Zugang über Telegram holen")
+        }
     }
 }
 
