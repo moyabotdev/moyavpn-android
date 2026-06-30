@@ -21,4 +21,7 @@
     <string name="disconnect">Trennen</string>
     <string name="err_invalid_code">Ungültiger oder abgelaufener Code.</string>
     <string name="err_server">Verbindung zum Server fehlgeschlagen. Bitte später erneut versuchen.</string>
+    <string name="quick_connect">Schnell verbinden (4h Test)</string>
+    <string name="trial_notice">4h-Test aktiv. Hol dir in @moyavpnbot dauerhaften Zugang bevor die Zeit endet — danach abmelden und neu verbinden.</string>
+    <string name="err_trial_limit">Test-Limit erreicht. Bitte hol dir Zugang in @moyavpnbot.</string>
 </resources>

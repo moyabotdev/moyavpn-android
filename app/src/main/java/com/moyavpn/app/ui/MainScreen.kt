@@ -34,11 +34,12 @@ fun MainScreen(
     onOpenBot: () -> Unit,
     onGetAccess: () -> Unit,
     onOpenSupport: () -> Unit,
+    onQuickConnect: () -> Unit,
 ) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when (state) {
             is UiState.Loading -> CenterBox { CircularProgressIndicator() }
-            is UiState.NeedsLogin -> LoginView(onLogin, onGetAccess)
+            is UiState.NeedsLogin -> LoginView(onLogin, onGetAccess, onQuickConnect)
             is UiState.Error -> CenterBox {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(state.message, textAlign = TextAlign.Center)
@@ -47,7 +48,7 @@ fun MainScreen(
                     TextButton(onClick = onLogout) { Text(stringResource(R.string.other_code)) }
                 }
             }
-            is UiState.Ready -> ReadyView(state, onToggle, onLogout, onOpenBot, onOpenSupport)
+            is UiState.Ready -> ReadyView(state, onToggle, onLogout, onOpenBot, onOpenSupport, onGetAccess)
         }
     }
 }
@@ -57,7 +58,7 @@ private fun CenterBox(content: @Composable BoxScope.() -> Unit) =
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center, content = content)
 
 @Composable
-private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit) {
+private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit, onQuickConnect: () -> Unit) {
     var code by remember { mutableStateOf("") }
     Column(
         Modifier.fillMaxSize().padding(24.dp),
@@ -93,13 +94,21 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit) {
             modifier = Modifier.fillMaxWidth().height(52.dp),
         ) { Text(stringResource(R.string.login_button)) }
 
+        Spacer(Modifier.height(12.dp))
+        // Notfall-Schnellzugang (4h) — für Regionen wo Telegram gesperrt ist
+        OutlinedButton(
+            onClick = onQuickConnect,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+        ) {
+            Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.quick_connect))
+        }
+
         Spacer(Modifier.height(20.dp))
         Text(stringResource(R.string.no_access_yet), style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(6.dp))
-        OutlinedButton(
-            onClick = onGetAccess,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-        ) {
+        TextButton(onClick = onGetAccess) {
             Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.get_access))
@@ -115,6 +124,7 @@ private fun ReadyView(
     onLogout: () -> Unit,
     onOpenBot: () -> Unit,
     onOpenSupport: () -> Unit,
+    onGetAccess: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -147,6 +157,29 @@ private fun ReadyView(
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.buy_time))
+                }
+            }
+
+            // Trial-Hinweis: Zugang in Telegram holen, dann ausloggen & neu verbinden
+            if (state.account.user.trial) {
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth(),
+                ) {
+                    Column(Modifier.padding(14.dp)) {
+                        Text(
+                            "⏳ " + stringResource(R.string.trial_notice),
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        FilledTonalButton(onClick = onGetAccess) {
+                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.get_access))
+                        }
+                    }
                 }
             }
 

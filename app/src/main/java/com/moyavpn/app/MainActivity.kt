@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
                     onOpenBot = ::openRenew,
                     onGetAccess = ::openGetAccess,
                     onOpenSupport = ::openSupport,
+                    onQuickConnect = vm::startTrial,
                 )
             }
         }

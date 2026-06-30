@@ -17,6 +17,13 @@ data class AccountResponse(
 data class AccountUser(
     val name: String,
     @Json(name = "expires_at") val expiresAt: String?,
+    val trial: Boolean = false,
+)
+
+/** Antwort von POST /app/v1/trial. */
+data class TrialResponse(
+    val token: String,
+    @Json(name = "expires_at") val expiresAt: String?,
 )
 
 data class Connection(

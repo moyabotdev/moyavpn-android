@@ -57,6 +57,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Schnell-Verbinden: erstellt einen 4h-Trial und meldet sich damit an. */
+    fun startTrial() {
+        _state.value = UiState.Loading
+        viewModelScope.launch {
+            runCatching { api.trial() }
+                .onSuccess { res ->
+                    tokenStore.save(res.token)
+                    loadAccount(res.token)
+                }
+                .onFailure { e ->
+                    val res = if (e.message?.contains("429") == true) R.string.err_trial_limit
+                              else R.string.err_server
+                    _state.value = UiState.Error(getApplication<Application>().getString(res))
+                }
+        }
+    }
+
     fun logout() {
         viewModelScope.launch {
             TunnelManager.disconnect(getApplication())

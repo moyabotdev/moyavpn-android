@@ -9,12 +9,17 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
 
 interface MoyaApi {
     /** Holt das Konto inkl. aller Verbindungs-Configs. Token als Bearer. */
     @GET("/app/v1/account")
     suspend fun account(@Header("Authorization") bearer: String): AccountResponse
+
+    /** Erstellt einen 4h-Notfallzugang (ohne Telegram). */
+    @POST("/app/v1/trial")
+    suspend fun trial(): TrialResponse
 
     companion object {
         fun create(): MoyaApi {
