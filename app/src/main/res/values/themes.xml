@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Basis-Theme; die eigentliche Gestaltung macht Compose (MoyaTheme). -->
+    <style name="Theme.MoyaVPN" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
