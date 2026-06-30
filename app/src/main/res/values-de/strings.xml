@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_hint">Gib deinen App-Zugangscode ein. Du bekommst ihn im MoyaBot über /app.</string>
+    <string name="code_label">App-Zugangscode</string>
+    <string name="login_button">Anmelden</string>
+    <string name="no_access_yet">Noch keinen Zugang?</string>
+    <string name="get_access">Zugang über Telegram holen</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="other_code">Anderen Code eingeben</string>
+    <string name="valid_until">Gültig bis %1$s</string>
+    <string name="buy_time">Zeit nachkaufen</string>
+    <string name="your_connections">Deine Verbindungen</string>
+    <string name="support">Support</string>
+    <string name="logout">Abmelden</string>
+    <string name="connect_failed">Verbindung fehlgeschlagen: %1$s</string>
+    <string name="status_active">aktiv</string>
+    <string name="status_expired">abgelaufen</string>
+    <string name="status_disabled">deaktiviert</string>
+    <string name="until">bis %1$s</string>
+    <string name="connect">Verbinden</string>
+    <string name="disconnect">Trennen</string>
+    <string name="err_invalid_code">Ungültiger oder abgelaufener Code.</string>
+    <string name="err_server">Verbindung zum Server fehlgeschlagen. Bitte später erneut versuchen.</string>
+</resources>

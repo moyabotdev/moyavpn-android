@@ -1,6 +1,7 @@
 package com.moyavpn.app.ui
 
 import android.app.Application
+import com.moyavpn.app.R
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.moyavpn.app.data.AccountResponse
@@ -82,11 +83,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }
             .onFailure { e ->
-                val msg = when {
-                    e.message?.contains("401") == true -> "Ungültiger oder abgelaufener Code."
-                    else -> "Verbindung zum Server fehlgeschlagen. Bitte später erneut versuchen."
-                }
-                _state.value = UiState.Error(msg)
+                val res = if (e.message?.contains("401") == true) R.string.err_invalid_code
+                          else R.string.err_server
+                _state.value = UiState.Error(getApplication<Application>().getString(res))
             }
     }
 

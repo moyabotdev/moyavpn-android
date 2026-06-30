@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_hint">Введите код доступа из приложения. Получить его можно в MoyaBot через /app.</string>
+    <string name="code_label">Код доступа</string>
+    <string name="login_button">Войти</string>
+    <string name="no_access_yet">Ещё нет доступа?</string>
+    <string name="get_access">Получить доступ через Telegram</string>
+    <string name="retry">Повторить</string>
+    <string name="other_code">Ввести другой код</string>
+    <string name="valid_until">Действует до %1$s</string>
+    <string name="buy_time">Продлить</string>
+    <string name="your_connections">Ваши подключения</string>
+    <string name="support">Поддержка</string>
+    <string name="logout">Выйти</string>
+    <string name="connect_failed">Ошибка подключения: %1$s</string>
+    <string name="status_active">активно</string>
+    <string name="status_expired">истекло</string>
+    <string name="status_disabled">отключено</string>
+    <string name="until">до %1$s</string>
+    <string name="connect">Подключить</string>
+    <string name="disconnect">Отключить</string>
+    <string name="err_invalid_code">Неверный или просроченный код.</string>
+    <string name="err_server">Не удалось связаться с сервером. Попробуйте позже.</string>
+</resources>

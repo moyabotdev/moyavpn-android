@@ -1,4 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Default = English (Fallback für alle nicht unterstützten Sprachen) -->
 <resources>
     <string name="app_name">MoyaVPN</string>
+    <string name="login_hint">Enter your app access code. You get it in MoyaBot via /app.</string>
+    <string name="code_label">App access code</string>
+    <string name="login_button">Log in</string>
+    <string name="no_access_yet">No access yet?</string>
+    <string name="get_access">Get access via Telegram</string>
+    <string name="retry">Try again</string>
+    <string name="other_code">Enter a different code</string>
+    <string name="valid_until">Valid until %1$s</string>
+    <string name="buy_time">Top up time</string>
+    <string name="your_connections">Your connections</string>
+    <string name="support">Support</string>
+    <string name="logout">Log out</string>
+    <string name="connect_failed">Connection failed: %1$s</string>
+    <string name="status_active">active</string>
+    <string name="status_expired">expired</string>
+    <string name="status_disabled">disabled</string>
+    <string name="until">until %1$s</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="err_invalid_code">Invalid or expired code.</string>
+    <string name="err_server">Could not reach the server. Please try again later.</string>
 </resources>

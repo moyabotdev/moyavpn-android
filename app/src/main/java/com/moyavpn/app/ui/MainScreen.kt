@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import com.moyavpn.app.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
@@ -42,8 +43,8 @@ fun MainScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(state.message, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(16.dp))
-                    Button(onClick = onRetry) { Text("Erneut versuchen") }
-                    TextButton(onClick = onLogout) { Text("Anderen Code eingeben") }
+                    Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+                    TextButton(onClick = onLogout) { Text(stringResource(R.string.other_code)) }
                 }
             }
             is UiState.Ready -> ReadyView(state, onToggle, onLogout, onOpenBot, onOpenSupport)
@@ -72,7 +73,7 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit) {
         Text("MoyaVPN", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Gib deinen App-Zugangscode ein. Du bekommst ihn im MoyaBot über das Menü „App-Zugang“.",
+            stringResource(R.string.login_hint),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
@@ -80,7 +81,7 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit) {
         OutlinedTextField(
             value = code,
             onValueChange = { code = it },
-            label = { Text("App-Zugangscode") },
+            label = { Text(stringResource(R.string.code_label)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             modifier = Modifier.fillMaxWidth(),
@@ -90,10 +91,10 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit) {
             onClick = { onLogin(code) },
             enabled = code.isNotBlank(),
             modifier = Modifier.fillMaxWidth().height(52.dp),
-        ) { Text("Anmelden") }
+        ) { Text(stringResource(R.string.login_button)) }
 
         Spacer(Modifier.height(20.dp))
-        Text("Noch keinen Zugang?", style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.no_access_yet), style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(6.dp))
         OutlinedButton(
             onClick = onGetAccess,
@@ -101,7 +102,7 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit) {
         ) {
             Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Zugang über Telegram holen")
+            Text(stringResource(R.string.get_access))
         }
     }
 }
@@ -121,10 +122,10 @@ private fun ReadyView(
                 title = { Text("MoyaVPN", fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = onOpenSupport) {
-                        Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "Support")
+                        Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = stringResource(R.string.support))
                     }
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Logout, contentDescription = "Abmelden")
+                        Icon(Icons.Default.Logout, contentDescription = stringResource(R.string.logout))
                     }
                 },
             )
@@ -139,13 +140,13 @@ private fun ReadyView(
                 Column(Modifier.weight(1f)) {
                     Text(state.account.user.name, style = MaterialTheme.typography.titleMedium)
                     state.account.user.expiresAt?.let {
-                        Text("Gültig bis $it", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.valid_until, it), style = MaterialTheme.typography.bodySmall)
                     }
                 }
                 FilledTonalButton(onClick = onOpenBot) {
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Zeit nachkaufen")
+                    Text(stringResource(R.string.buy_time))
                 }
             }
 
@@ -160,7 +161,7 @@ private fun ReadyView(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth(),
                 ) {
                     Text(
-                        "Verbindung fehlgeschlagen: $err",
+                        stringResource(R.string.connect_failed, err),
                         color = MaterialTheme.colorScheme.onErrorContainer,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(12.dp),
@@ -169,7 +170,7 @@ private fun ReadyView(
             }
 
             Text(
-                "Deine Verbindungen",
+                stringResource(R.string.your_connections),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp),
             )
@@ -222,9 +223,10 @@ private fun ConnectionCard(conn: Connection, active: Boolean, busy: Boolean, onC
             Column(Modifier.weight(1f)) {
                 Text(conn.serverName, style = MaterialTheme.typography.titleMedium)
                 val sub = when (conn.status) {
-                    "active"   -> conn.expiresAt?.let { "bis $it" } ?: "aktiv"
-                    "expired"  -> "abgelaufen"
-                    else        -> "deaktiviert"
+                    "active"   -> conn.expiresAt?.let { stringResource(R.string.until, it) }
+                                    ?: stringResource(R.string.status_active)
+                    "expired"  -> stringResource(R.string.status_expired)
+                    else        -> stringResource(R.string.status_disabled)
                 }
                 Text(sub, style = MaterialTheme.typography.bodySmall)
             }
@@ -235,7 +237,7 @@ private fun ConnectionCard(conn: Connection, active: Boolean, busy: Boolean, onC
                 FilledTonalButton(onClick = onClick, enabled = !disabled) {
                     Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text(if (active) "Trennen" else "Verbinden")
+                    Text(stringResource(if (active) R.string.disconnect else R.string.connect))
                 }
             }
         }
