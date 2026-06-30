@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
@@ -25,6 +26,7 @@ fun MainScreen(
     onToggle: (Connection) -> Unit,
     onLogout: () -> Unit,
     onRetry: () -> Unit,
+    onOpenBot: () -> Unit,
 ) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when (state) {
@@ -38,7 +40,7 @@ fun MainScreen(
                     TextButton(onClick = onLogout) { Text("Anderen Code eingeben") }
                 }
             }
-            is UiState.Ready -> ReadyView(state, onToggle, onLogout)
+            is UiState.Ready -> ReadyView(state, onToggle, onLogout, onOpenBot)
         }
     }
 }
@@ -82,7 +84,12 @@ private fun LoginView(onLogin: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReadyView(state: UiState.Ready, onToggle: (Connection) -> Unit, onLogout: () -> Unit) {
+private fun ReadyView(
+    state: UiState.Ready,
+    onToggle: (Connection) -> Unit,
+    onLogout: () -> Unit,
+    onOpenBot: () -> Unit,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -96,11 +103,21 @@ private fun ReadyView(state: UiState.Ready, onToggle: (Connection) -> Unit, onLo
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
-            // Kopf: Nutzer + Ablauf
-            Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-                Text(state.account.user.name, style = MaterialTheme.typography.titleMedium)
-                state.account.user.expiresAt?.let {
-                    Text("Gültig bis $it", style = MaterialTheme.typography.bodySmall)
+            // Kopf: Nutzer + Ablauf + „Zeit nachkaufen“
+            Row(
+                Modifier.padding(horizontal = 20.dp, vertical = 8.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(state.account.user.name, style = MaterialTheme.typography.titleMedium)
+                    state.account.user.expiresAt?.let {
+                        Text("Gültig bis $it", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                FilledTonalButton(onClick = onOpenBot) {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Zeit nachkaufen")
                 }
             }
 
@@ -137,7 +154,7 @@ private fun ReadyView(state: UiState.Ready, onToggle: (Connection) -> Unit, onLo
                     ConnectionCard(
                         conn = conn,
                         active = state.activeServerId == conn.serverId,
-                        busy = state.connecting,
+                        busy = state.connectingTo == conn.serverId,
                         onClick = { onToggle(conn) },
                     )
                 }
@@ -184,10 +201,10 @@ private fun ConnectionCard(conn: Connection, active: Boolean, busy: Boolean, onC
                 Text(sub, style = MaterialTheme.typography.bodySmall)
             }
             Spacer(Modifier.width(12.dp))
-            if (busy && active) {
+            if (busy) {
                 CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
             } else {
-                FilledTonalButton(onClick = onClick, enabled = !disabled && !busy) {
+                FilledTonalButton(onClick = onClick, enabled = !disabled) {
                     Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(if (active) "Trennen" else "Verbinden")

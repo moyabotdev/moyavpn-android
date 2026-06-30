@@ -1,6 +1,7 @@
 package com.moyavpn.app
 
 import android.content.Intent
+import android.net.Uri
 import android.net.VpnService
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -53,6 +54,7 @@ class MainActivity : ComponentActivity() {
                     onToggle = { conn -> handleToggle(state, conn) },
                     onLogout = vm::logout,
                     onRetry = vm::retry,
+                    onOpenBot = ::openBot,
                 )
             }
         }
@@ -62,6 +64,12 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleDeepLink(intent)
+    }
+
+    /** Öffnet den MoyaBot in Telegram (Zeit nachkaufen / verlängern). */
+    private fun openBot() {
+        val url = "https://t.me/moyavpnbot"
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
     }
 
     /**

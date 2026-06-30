@@ -22,7 +22,7 @@ sealed interface UiState {
     data class Ready(
         val account: AccountResponse,
         val activeServerId: String? = null,   // welche Verbindung laeuft gerade
-        val connecting: Boolean = false,
+        val connectingTo: String? = null,     // welcher Server wird gerade verbunden
         val rxBytes: Long = 0,
         val txBytes: Long = 0,
         val connectError: String? = null,     // letzter Verbindungsfehler (für Anzeige)
@@ -92,7 +92,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private var currentServerId: String? = null
 
-    /** Verbindet mit der gewaehlten Verbindung (oder trennt, wenn sie schon laeuft). */
+    /**
+     * Verbindet mit der gewählten Verbindung (oder trennt, wenn sie schon läuft).
+     * Beim Wechsel auf einen anderen Server trennt die AmneziaWG-Engine den alten
+     * Tunnel automatisch und baut den neuen auf.
+     */
     fun toggle(conn: Connection) {
         val ready = _state.value as? UiState.Ready ?: return
         viewModelScope.launch {
@@ -102,11 +106,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 _state.value = ready.copy(activeServerId = null, rxBytes = 0, txBytes = 0)
                 return@launch
             }
-            _state.value = ready.copy(connecting = true, connectError = null)
+            // Spinner am Ziel-Server anzeigen
+            _state.value = ready.copy(connectingTo = conn.serverId, connectError = null)
             runCatching { TunnelManager.connect(getApplication(), conn.config) }
                 .onSuccess {
                     currentServerId = conn.serverId
-                    _state.value = ready.copy(activeServerId = conn.serverId, connecting = false)
+                    _state.value = ready.copy(activeServerId = conn.serverId, connectingTo = null)
                     refreshStats()
                 }
                 .onFailure { e ->
@@ -115,7 +120,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     val msg = reason ?: "${e.javaClass.simpleName}: ${e.message ?: "unbekannt"}"
                     _state.value = ready.copy(
                         activeServerId = null,
-                        connecting = false,
+                        connectingTo = null,
                         connectError = msg,
                     )
                 }
