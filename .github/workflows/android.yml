@@ -51,6 +51,9 @@ jobs:
           echo "AAR bereit:"; ls -la app/libs/
 
       - name: Build MoyaVPN debug APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: "1.0.${{ github.run_number }}"
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon --stacktrace assembleDebug

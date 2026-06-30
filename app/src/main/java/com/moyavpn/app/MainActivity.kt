@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
                     onLogout = vm::logout,
                     onRetry = vm::retry,
                     onOpenBot = ::openBot,
+                    onOpenSupport = ::openSupport,
                 )
             }
         }
@@ -67,8 +68,12 @@ class MainActivity : ComponentActivity() {
     }
 
     /** Öffnet den MoyaBot in Telegram (Zeit nachkaufen / verlängern). */
-    private fun openBot() {
-        val url = "https://t.me/moyavpnbot"
+    private fun openBot() = openUrl("https://t.me/moyavpnbot")
+
+    /** Öffnet den MoyaBot direkt im Support-Chat. */
+    private fun openSupport() = openUrl("https://t.me/moyavpnbot?start=support")
+
+    private fun openUrl(url: String) {
         runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
     }
 

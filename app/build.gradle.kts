@@ -12,11 +12,23 @@ android {
         applicationId = "com.moyavpn.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        // versionCode kommt in CI aus der GitHub-Run-Nummer → jeder Build ist ein Update.
+        versionCode = (System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1)
+        versionName = System.getenv("VERSION_NAME") ?: "1.0"
 
         // Basis-URL des Config-Servers. Kann pro Build ueberschrieben werden.
         buildConfigField("String", "API_BASE_URL", "\"https://register.moyabot.ru:8443\"")
+    }
+
+    // Fester Debug-Signatur-Key (im Repo) — gleiche Signatur über alle Builds,
+    // damit Android Updates ohne Neuinstallation erlaubt.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {

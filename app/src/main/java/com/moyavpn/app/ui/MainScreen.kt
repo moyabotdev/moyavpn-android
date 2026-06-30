@@ -1,11 +1,15 @@
 package com.moyavpn.app.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.res.painterResource
+import com.moyavpn.app.R
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Logout
@@ -27,6 +31,7 @@ fun MainScreen(
     onLogout: () -> Unit,
     onRetry: () -> Unit,
     onOpenBot: () -> Unit,
+    onOpenSupport: () -> Unit,
 ) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when (state) {
@@ -40,7 +45,7 @@ fun MainScreen(
                     TextButton(onClick = onLogout) { Text("Anderen Code eingeben") }
                 }
             }
-            is UiState.Ready -> ReadyView(state, onToggle, onLogout, onOpenBot)
+            is UiState.Ready -> ReadyView(state, onToggle, onLogout, onOpenBot, onOpenSupport)
         }
     }
 }
@@ -57,6 +62,12 @@ private fun LoginView(onLogin: (String) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        Image(
+            painter = painterResource(R.drawable.moyavpn_logo),
+            contentDescription = "MoyaVPN",
+            modifier = Modifier.size(120.dp),
+        )
+        Spacer(Modifier.height(12.dp))
         Text("MoyaVPN", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Text(
@@ -89,12 +100,16 @@ private fun ReadyView(
     onToggle: (Connection) -> Unit,
     onLogout: () -> Unit,
     onOpenBot: () -> Unit,
+    onOpenSupport: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("MoyaVPN", fontWeight = FontWeight.Bold) },
                 actions = {
+                    IconButton(onClick = onOpenSupport) {
+                        Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "Support")
+                    }
                     IconButton(onClick = onLogout) {
                         Icon(Icons.Default.Logout, contentDescription = "Abmelden")
                     }
