@@ -31,12 +31,13 @@ fun MainScreen(
     onLogout: () -> Unit,
     onRetry: () -> Unit,
     onOpenBot: () -> Unit,
+    onGetAccess: () -> Unit,
     onOpenSupport: () -> Unit,
 ) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when (state) {
             is UiState.Loading -> CenterBox { CircularProgressIndicator() }
-            is UiState.NeedsLogin -> LoginView(onLogin, onOpenBot)
+            is UiState.NeedsLogin -> LoginView(onLogin, onGetAccess)
             is UiState.Error -> CenterBox {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(state.message, textAlign = TextAlign.Center)

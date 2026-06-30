@@ -54,7 +54,8 @@ class MainActivity : ComponentActivity() {
                     onToggle = { conn -> handleToggle(state, conn) },
                     onLogout = vm::logout,
                     onRetry = vm::retry,
-                    onOpenBot = ::openBot,
+                    onOpenBot = ::openRenew,
+                    onGetAccess = ::openGetAccess,
                     onOpenSupport = ::openSupport,
                 )
             }
@@ -67,10 +68,13 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
     }
 
-    /** Öffnet den MoyaBot in Telegram (Zeit nachkaufen / verlängern). */
-    private fun openBot() = openUrl("https://t.me/moyavpnbot")
+    /** „Zeit nachkaufen" → Verlängerungs-Flow im Bot. */
+    private fun openRenew() = openUrl("https://t.me/moyavpnbot?start=renew")
 
-    /** Öffnet den MoyaBot direkt im Support-Chat. */
+    /** Login „Zugang holen" → Bot-Startmenü (Trial/Zugang für neue Nutzer). */
+    private fun openGetAccess() = openUrl("https://t.me/moyavpnbot")
+
+    /** „?" → Support-Chat im Bot. */
     private fun openSupport() = openUrl("https://t.me/moyavpnbot?start=support")
 
     private fun openUrl(url: String) {
