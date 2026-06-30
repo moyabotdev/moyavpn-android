@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # für das öffentliche Release nötig
     steps:
       - name: Checkout MoyaVPN
         uses: actions/checkout@v4
@@ -53,9 +55,20 @@ jobs:
           chmod +x ./gradlew
           ./gradlew --no-daemon --stacktrace assembleDebug
 
-      - name: Upload APK
+      - name: Upload APK (Artefakt)
         uses: actions/upload-artifact@v4
         with:
           name: MoyaVPN-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      # Öffentliches Release mit stabiler Download-URL:
+      # https://github.com/moyabotdev/moyavpn-android/releases/download/latest/app-debug.apk
+      - name: Publish to GitHub Release (latest)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: MoyaVPN — neuester Build
+          files: app/build/outputs/apk/debug/app-debug.apk
+          make_latest: true
