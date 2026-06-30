@@ -1,20 +1,23 @@
 package com.moyavpn.app.vpn
 
 import android.content.Context
-import com.wireguard.android.backend.Backend
-import com.wireguard.android.backend.GoBackend
-import com.wireguard.android.backend.Tunnel
-import com.wireguard.config.Config
+import org.amnezia.awg.backend.Backend
+import org.amnezia.awg.backend.GoBackend
+import org.amnezia.awg.backend.Tunnel
+import org.amnezia.awg.config.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 
 /**
- * Duenne Huelle um den WireGuard-GoBackend.
+ * Hülle um das AmneziaWG-GoBackend (org.amnezia.awg.*).
  *
- * MVP: nutzt com.wireguard.* (Standard-WireGuard).
- * Fuer AmneziaWG (DPI-resistent) spaeter org.amnezia.awg.* + die AWG-Parameter
- * aus [com.moyavpn.app.data.AwgParams] in die Config einsetzen.
+ * AmneziaWG = obfuskiertes WireGuard (DPI-resistent). Die Config aus dem
+ * MoyaBot-Server enthält bereits die Obfuskations-Parameter (Jc/Jmin/.../H1-H4);
+ * der AmneziaWG-Config-Parser liest sie direkt.
+ *
+ * Das tunnel-AAR wird in CI aus amnezia-vpn/amneziawg-android gebaut und nach
+ * app/libs/awg-tunnel.aar gelegt (siehe .github/workflows/android.yml).
  */
 object TunnelManager {
 
@@ -31,7 +34,7 @@ object TunnelManager {
     val isUp: Boolean
         get() = tunnel.state == Tunnel.State.UP
 
-    /** Parst eine .conf und bringt den Tunnel hoch. Laeuft auf IO. */
+    /** Parst eine .conf und bringt den Tunnel hoch. Läuft auf IO. */
     suspend fun connect(context: Context, wgConfig: String) = withContext(Dispatchers.IO) {
         val config = Config.parse(ByteArrayInputStream(wgConfig.toByteArray()))
         backend(context).setState(tunnel, Tunnel.State.UP, config)
@@ -43,7 +46,7 @@ object TunnelManager {
         }
     }
 
-    /** Aktueller RX/TX in Bytes (fuer die Traffic-Anzeige). */
+    /** Aktueller RX/TX in Bytes (für die Traffic-Anzeige). */
     suspend fun statistics(context: Context): Pair<Long, Long> = withContext(Dispatchers.IO) {
         runCatching {
             val s = backend(context).getStatistics(tunnel)

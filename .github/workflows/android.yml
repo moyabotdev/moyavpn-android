@@ -3,15 +3,24 @@ name: Build MoyaVPN APK
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout MoyaVPN
+        uses: actions/checkout@v4
+
+      # AmneziaWG-tunnel-Quellen (nativer Go/NDK-Build) — gepinnt auf v2.0.1
+      - name: Checkout AmneziaWG tunnel source
+        uses: actions/checkout@v4
+        with:
+          repository: amnezia-vpn/amneziawg-android
+          ref: v2.0.1
+          submodules: recursive
+          fetch-depth: 0
+          path: awg-src
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -19,14 +28,30 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+      # Baut org.amnezia.awg:tunnel → tunnel-release.aar (libwg-go.so etc.)
+      - name: Build AmneziaWG tunnel AAR
+        run: |
+          cd awg-src
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace :tunnel:assembleRelease
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Stage AAR into app/libs
+        run: |
+          set -e
+          ls -la awg-src/tunnel/build/outputs/aar/
+          cp awg-src/tunnel/build/outputs/aar/tunnel-release.aar app/libs/awg-tunnel.aar
+          echo "AAR bereit:"; ls -la app/libs/
+
+      - name: Build MoyaVPN debug APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

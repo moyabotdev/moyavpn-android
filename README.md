@@ -101,7 +101,7 @@ Für DPI-Resistenz (Russland) den WireGuard-Core gegen AmneziaWG tauschen:
 cd moyavpn-android
 git init && git add -A && git commit -m "MoyaVPN Android MVP"
 git branch -M main
-git remote add origin git@github.com:<dein-user>/moyavpn-android.git
+git remote add origin git@github.com:moyabotdev/moyavpn-android.git
 git push -u origin main
 ```
 Danach baut GitHub die APK automatisch.
