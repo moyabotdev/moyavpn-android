@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.moyavpn.app"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.moyavpn.app"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         // versionCode kommt in CI aus der GitHub-Run-Nummer → jeder Build ist ein Update.
         versionCode = (System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1)
         versionName = System.getenv("VERSION_NAME") ?: "1.0"
@@ -29,11 +29,22 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        // Upload-Key für Play (kommt aus CI-Secrets via Umgebungsvariablen,
+        // nicht im Repo). Nur gesetzt, wenn KEYSTORE_PATH vorhanden ist.
+        create("release") {
+            System.getenv("KEYSTORE_PATH")?.let { ksPath ->
+                storeFile = file(ksPath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

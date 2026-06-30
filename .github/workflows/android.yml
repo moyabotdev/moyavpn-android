@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write   # für das öffentliche Release nötig
+    env:
+      # true, sobald der Upload-Keystore als Repo-Secret hinterlegt ist
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - name: Checkout MoyaVPN
         uses: actions/checkout@v4
@@ -103,3 +106,27 @@ jobs:
           name: MoyaVPN — neuester Build
           files: app-debug.apk
           make_latest: true
+
+      # ── Play Store: signierte AAB (nur wenn Upload-Keystore als Secret hinterlegt) ──
+      - name: Decode upload keystore
+        if: env.HAS_KEYSTORE == 'true'
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "${{ runner.temp }}/upload.keystore"
+
+      - name: Build Play release AAB (signiert)
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/upload.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: "1.0.${{ github.run_number }}"
+        run: ./gradlew --no-daemon --stacktrace bundlePlayRelease
+
+      - name: Upload Play AAB
+        if: env.HAS_KEYSTORE == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoyaVPN-play-aab
+          path: app/build/outputs/bundle/playRelease/app-play-release.aab
+          if-no-files-found: error
