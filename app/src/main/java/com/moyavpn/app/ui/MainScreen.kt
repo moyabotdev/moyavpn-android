@@ -1,20 +1,37 @@
 package com.moyavpn.app.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.moyavpn.app.BuildConfig
 import com.moyavpn.app.R
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,10 +41,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.moyavpn.app.data.Connection
+import com.moyavpn.app.data.SplitTunnelStore
+import com.moyavpn.app.data.UpdateInfo
 
 @Composable
 fun MainScreen(
     state: UiState,
+    update: UpdateInfo?,
     onLogin: (String) -> Unit,
     onToggle: (Connection) -> Unit,
     onLogout: () -> Unit,
@@ -36,20 +56,32 @@ fun MainScreen(
     onGetAccess: () -> Unit,
     onOpenSupport: () -> Unit,
     onQuickConnect: () -> Unit,
+    onRefresh: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onUpdate: (String) -> Unit,
+    onDismissUpdate: () -> Unit,
 ) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        when (state) {
-            is UiState.Loading -> CenterBox { CircularProgressIndicator() }
-            is UiState.NeedsLogin -> LoginView(onLogin, onGetAccess, onQuickConnect)
-            is UiState.Error -> CenterBox {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(state.message, textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
-                    TextButton(onClick = onLogout) { Text(stringResource(R.string.other_code)) }
+        Column(Modifier.fillMaxSize()) {
+            update?.let { UpdateBanner(it, onUpdate, onDismissUpdate) }
+            Box(Modifier.weight(1f)) {
+                when (state) {
+                    is UiState.Loading -> CenterBox { CircularProgressIndicator() }
+                    is UiState.NeedsLogin -> LoginView(onLogin, onGetAccess, onQuickConnect)
+                    is UiState.Error -> CenterBox {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(state.message, textAlign = TextAlign.Center)
+                            Spacer(Modifier.height(16.dp))
+                            Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+                            TextButton(onClick = onLogout) { Text(stringResource(R.string.other_code)) }
+                        }
+                    }
+                    is UiState.Ready -> ReadyView(
+                        state, onToggle, onLogout, onOpenBot, onOpenSupport,
+                        onGetAccess, onRefresh, onOpenSettings,
+                    )
                 }
             }
-            is UiState.Ready -> ReadyView(state, onToggle, onLogout, onOpenBot, onOpenSupport, onGetAccess)
         }
     }
 }
@@ -57,6 +89,41 @@ fun MainScreen(
 @Composable
 private fun CenterBox(content: @Composable BoxScope.() -> Unit) =
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center, content = content)
+
+/** Update-Hinweis (nur direct-Variante liefert je ein UpdateInfo). */
+@Composable
+private fun UpdateBanner(info: UpdateInfo, onUpdate: (String) -> Unit, onDismiss: () -> Unit) {
+    Surface(color = MaterialTheme.colorScheme.primaryContainer) {
+        Row(
+            Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Filled.SystemUpdate,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.update_available),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                info.versionName?.let {
+                    Text(
+                        stringResource(R.string.update_to, it),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+            }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.update_later)) }
+            Button(onClick = { onUpdate(info.url) }) { Text(stringResource(R.string.update_now)) }
+        }
+    }
+}
 
 @Composable
 private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit, onQuickConnect: () -> Unit) {
@@ -80,41 +147,64 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit, onQuic
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(24.dp))
-        OutlinedTextField(
-            value = code,
-            onValueChange = { code = it },
-            label = { Text(stringResource(R.string.code_label)) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Spacer(Modifier.height(16.dp))
-        Button(
-            onClick = { onLogin(code) },
-            enabled = code.isNotBlank(),
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-        ) { Text(stringResource(R.string.login_button)) }
 
-        Spacer(Modifier.height(12.dp))
-        // Notfall-Schnellzugang (4h) — für Regionen wo Telegram gesperrt ist
-        OutlinedButton(
-            onClick = onQuickConnect,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-        ) {
-            Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.quick_connect))
-        }
-
-        // „Zugang holen" (führt zum Verkaufskanal) nur in der direct-Variante
         if (BuildConfig.SHOW_PURCHASE) {
+            // direct-Variante: 4h-Gratistest ist der auffaellige Primaer-Button.
+            Button(
+                onClick = onQuickConnect,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+            ) {
+                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.trial_big), fontWeight = FontWeight.Bold)
+            }
             Spacer(Modifier.height(20.dp))
-            Text(stringResource(R.string.no_access_yet), style = MaterialTheme.typography.bodySmall)
-            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.have_code), style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = code,
+                onValueChange = { code = it },
+                label = { Text(stringResource(R.string.code_label)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = { onLogin(code) },
+                enabled = code.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+            ) { Text(stringResource(R.string.login_button)) }
+            Spacer(Modifier.height(8.dp))
             TextButton(onClick = onGetAccess) {
                 Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.get_access))
+            }
+        } else {
+            // play-Variante: unveraendert — Code-Login primaer, Test sekundaer.
+            OutlinedTextField(
+                value = code,
+                onValueChange = { code = it },
+                label = { Text(stringResource(R.string.code_label)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = { onLogin(code) },
+                enabled = code.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+            ) { Text(stringResource(R.string.login_button)) }
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = onQuickConnect,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+            ) {
+                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.quick_connect))
             }
         }
     }
@@ -129,12 +219,20 @@ private fun ReadyView(
     onOpenBot: () -> Unit,
     onOpenSupport: () -> Unit,
     onGetAccess: () -> Unit,
+    onRefresh: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("MoyaVPN", fontWeight = FontWeight.Bold) },
                 actions = {
+                    IconButton(onClick = onRefresh) {
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh))
+                    }
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+                    }
                     IconButton(onClick = onOpenSupport) {
                         Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = stringResource(R.string.support))
                     }
@@ -146,6 +244,9 @@ private fun ReadyView(
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
+            // Glanzstueck: animierter Verbindungs-Status auf einen Blick.
+            ConnectionHero(state)
+
             // Kopf: Nutzer + Ablauf + „Zeit nachkaufen“
             Row(
                 Modifier.padding(horizontal = 20.dp, vertical = 8.dp).fillMaxWidth(),
@@ -234,6 +335,78 @@ private fun ReadyView(
     }
 }
 
+/** Animierter Status-Kopf: pulsierendes Schild in Akzentfarbe je nach Zustand. */
+@Composable
+private fun ConnectionHero(state: UiState.Ready) {
+    val active = state.account.connections.firstOrNull { it.serverId == state.activeServerId }
+    val target = state.account.connections.firstOrNull { it.serverId == state.connectingTo }
+    val connecting = state.connectingTo != null
+    val connected = active != null
+
+    val accent by animateColorAsState(
+        targetValue = when {
+            connected -> MaterialTheme.colorScheme.primary
+            connecting -> MaterialTheme.colorScheme.tertiary
+            else -> MaterialTheme.colorScheme.outline
+        },
+        label = "accent",
+    )
+    val transition = rememberInfiniteTransition(label = "pulse")
+    val pulse by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1600), RepeatMode.Restart),
+        label = "pulseValue",
+    )
+    val animate = connected || connecting
+
+    Column(
+        Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(132.dp)) {
+            if (animate) {
+                // nach aussen laufender, verblassender Ring
+                Box(
+                    Modifier
+                        .size(120.dp)
+                        .scale(0.6f + pulse * 0.5f)
+                        .alpha((1f - pulse).coerceIn(0f, 1f))
+                        .background(accent.copy(alpha = 0.35f), CircleShape),
+                )
+            }
+            Box(
+                Modifier.size(92.dp).background(accent.copy(alpha = 0.15f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Filled.Shield,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(44.dp),
+                )
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(
+            when {
+                connected -> stringResource(R.string.status_connected)
+                connecting -> stringResource(R.string.status_connecting)
+                else -> stringResource(R.string.status_disconnected)
+            },
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = accent,
+        )
+        (active ?: target)?.let { srv ->
+            Text(
+                "${srv.flag ?: "🌐"}  ${srv.serverName}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
 @Composable
 private fun TrafficBar(rx: Long, tx: Long) {
     Surface(
@@ -283,6 +456,118 @@ private fun ConnectionCard(conn: Connection, active: Boolean, busy: Boolean, onC
                 }
             }
         }
+    }
+}
+
+/**
+ * Einstellungen: Always-on-Verknuepfung (oeffnet Android-VPN-Settings) und
+ * Split-Tunneling (VPN nur fuer / ausser bestimmte Apps).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    settings: SettingsUi,
+    onBack: () -> Unit,
+    onMode: (String) -> Unit,
+    onToggleApp: (String) -> Unit,
+    onAlwaysOn: () -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.settings)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                        )
+                    }
+                },
+            )
+        },
+    ) { pad ->
+        Column(Modifier.padding(pad).fillMaxSize()) {
+            // ── Always-on ──
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    stringResource(R.string.always_on_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(stringResource(R.string.always_on_desc), style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(10.dp))
+                FilledTonalButton(onClick = onAlwaysOn) {
+                    Icon(Icons.Default.PowerSettingsNew, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.always_on_open))
+                }
+            }
+
+            HorizontalDivider()
+
+            // ── Split-Tunneling ──
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    stringResource(R.string.split_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(stringResource(R.string.split_desc), style = MaterialTheme.typography.bodySmall)
+            }
+            SplitModeOption(R.string.split_off, SplitTunnelStore.MODE_OFF, settings.mode, onMode)
+            SplitModeOption(R.string.split_include, SplitTunnelStore.MODE_INCLUDE, settings.mode, onMode)
+            SplitModeOption(R.string.split_exclude, SplitTunnelStore.MODE_EXCLUDE, settings.mode, onMode)
+
+            if (settings.mode != SplitTunnelStore.MODE_OFF) {
+                Text(
+                    stringResource(R.string.split_selected_count, settings.selected.size),
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp),
+                )
+                if (settings.loadingApps) {
+                    Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    LazyColumn(Modifier.weight(1f)) {
+                        items(settings.apps) { app ->
+                            AppRow(app, checked = app.pkg in settings.selected) { onToggleApp(app.pkg) }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SplitModeOption(labelRes: Int, value: String, current: String, onSelect: (String) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable { onSelect(value) }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = current == value, onClick = { onSelect(value) })
+        Spacer(Modifier.width(8.dp))
+        Text(stringResource(labelRes), style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+private fun AppRow(app: AppEntry, checked: Boolean, onToggle: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable { onToggle() }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(app.label, style = MaterialTheme.typography.bodyMedium)
+            Text(app.pkg, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+        }
+        Checkbox(checked = checked, onCheckedChange = { onToggle() })
     }
 }
 

@@ -24,4 +24,35 @@
     <string name="quick_connect">Быстрое подключение (тест 4 ч)</string>
     <string name="trial_notice">Тест на 4 часа активен. Получите постоянный код доступа до окончания — затем выйдите и подключитесь заново.</string>
     <string name="err_trial_limit">Лимит тестов исчерпан. Получите доступ в @moyavpnbot.</string>
+
+    <!-- Заметная кнопка теста (только direct-сборка) -->
+    <string name="trial_big">4 часа бесплатно — без регистрации</string>
+    <string name="have_code">Уже есть код?</string>
+
+    <!-- Статус подключения -->
+    <string name="status_connected">Подключено</string>
+    <string name="status_connecting">Подключение…</string>
+    <string name="status_disconnected">Не подключено</string>
+
+    <!-- Настройки / раздельное туннелирование / always-on -->
+    <string name="settings">Настройки</string>
+    <string name="back">Назад</string>
+    <string name="refresh">Обновить</string>
+    <string name="loading">Загрузка…</string>
+    <string name="always_on_title">Постоянный VPN (Always-on)</string>
+    <string name="always_on_desc">Задайте MoyaVPN как \"постоянный\" в настройках Android — тогда он подключается автоматически после каждой перезагрузки.</string>
+    <string name="always_on_open">Открыть настройки VPN в Android</string>
+    <string name="split_title">VPN по приложениям</string>
+    <string name="split_desc">Выберите, какие приложения используют VPN.</string>
+    <string name="split_off">Выкл. — все приложения через VPN</string>
+    <string name="split_include">Только эти приложения через VPN</string>
+    <string name="split_exclude">Все приложения, кроме этих</string>
+    <string name="split_pick">Выбрать приложения</string>
+    <string name="split_selected_count">Выбрано: %1$d</string>
+
+    <!-- Обновление в приложении (только direct-сборка) -->
+    <string name="update_available">Доступно обновление</string>
+    <string name="update_to">Новая версия %1$s</string>
+    <string name="update_now">Обновить сейчас</string>
+    <string name="update_later">Позже</string>
 </resources>

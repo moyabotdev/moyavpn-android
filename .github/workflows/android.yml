@@ -106,6 +106,21 @@ jobs:
           path: app-debug.apk
           if-no-files-found: error
 
+      # Versions-Manifest für den In-App-Updater (nur direct-Variante nutzt es).
+      # Die App vergleicht version_code mit ihrem eingebauten BuildConfig.VERSION_CODE.
+      - name: Write version.json (In-App-Update-Manifest)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cat > version.json <<EOF
+          {
+            "version_code": ${{ github.run_number }},
+            "version_name": "1.0.${{ github.run_number }}",
+            "url": "https://github.com/moyabotdev/moyavpn-android/releases/download/latest/app-debug.apk",
+            "notes": ""
+          }
+          EOF
+          echo "version.json:"; cat version.json
+
       # Öffentliches Release mit stabiler Download-URL:
       # https://github.com/moyabotdev/moyavpn-android/releases/download/latest/app-debug.apk
       - name: Publish to GitHub Release (latest)
@@ -117,6 +132,7 @@ jobs:
           files: |
             app-debug.apk
             app-play-debug.apk
+            version.json
           make_latest: true
 
       # ── Play Store: signierte AAB (nur wenn Upload-Keystore als Secret hinterlegt) ──

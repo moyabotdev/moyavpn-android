@@ -34,10 +34,36 @@ object TunnelManager {
     val isUp: Boolean
         get() = tunnel.state == Tunnel.State.UP
 
-    /** Parst eine .conf und bringt den Tunnel hoch. Läuft auf IO. */
-    suspend fun connect(context: Context, wgConfig: String) = withContext(Dispatchers.IO) {
-        val config = Config.parse(ByteArrayInputStream(wgConfig.toByteArray()))
+    /**
+     * Parst eine .conf und bringt den Tunnel hoch. Läuft auf IO.
+     *
+     * [splitKey] ist entweder "IncludedApplications", "ExcludedApplications" oder
+     * null (kein Split-Tunneling). Ist er gesetzt UND [packages] nicht leer, wird
+     * die entsprechende Zeile in den [Interface]-Block der Config injiziert.
+     * Standardnutzer (splitKey=null) bekommen die Config unveraendert.
+     */
+    suspend fun connect(
+        context: Context,
+        wgConfig: String,
+        splitKey: String? = null,
+        packages: List<String> = emptyList(),
+    ) = withContext(Dispatchers.IO) {
+        val effective = applySplit(wgConfig, splitKey, packages)
+        val config = Config.parse(ByteArrayInputStream(effective.toByteArray()))
         backend(context).setState(tunnel, Tunnel.State.UP, config)
+    }
+
+    /** Fuegt IncludedApplications/ExcludedApplications in den [Interface]-Block ein. */
+    private fun applySplit(conf: String, splitKey: String?, packages: List<String>): String {
+        if (splitKey.isNullOrBlank() || packages.isEmpty()) return conf
+        val line = "$splitKey = ${packages.joinToString(", ")}"
+        var inserted = false
+        return conf.lineSequence().flatMap { l ->
+            if (!inserted && l.trim().equals("[Interface]", ignoreCase = true)) {
+                inserted = true
+                sequenceOf(l, line)
+            } else sequenceOf(l)
+        }.joinToString("\n")
     }
 
     suspend fun disconnect(context: Context) = withContext(Dispatchers.IO) {

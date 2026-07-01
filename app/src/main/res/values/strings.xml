@@ -26,4 +26,35 @@
     <string name="quick_connect">Quick connect (4-hour trial)</string>
     <string name="trial_notice">4-hour trial active. Get a permanent access code before it ends — then log out and reconnect.</string>
     <string name="err_trial_limit">Trial limit reached. Please get access in @moyavpnbot.</string>
+
+    <!-- Prominent trial CTA (direct build only) -->
+    <string name="trial_big">Try 4 hours free — no sign-up</string>
+    <string name="have_code">Already have a code?</string>
+
+    <!-- Connection hero -->
+    <string name="status_connected">Connected</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_disconnected">Not connected</string>
+
+    <!-- Settings / split tunneling / always-on -->
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="refresh">Refresh</string>
+    <string name="loading">Loading…</string>
+    <string name="always_on_title">Always-on VPN</string>
+    <string name="always_on_desc">Set MoyaVPN as \"always-on\" in Android settings so it reconnects automatically after every reboot.</string>
+    <string name="always_on_open">Open Android VPN settings</string>
+    <string name="split_title">Per-app VPN (split tunneling)</string>
+    <string name="split_desc">Choose which apps use the VPN.</string>
+    <string name="split_off">Off — all apps use the VPN</string>
+    <string name="split_include">Only these apps use the VPN</string>
+    <string name="split_exclude">All apps except these</string>
+    <string name="split_pick">Select apps</string>
+    <string name="split_selected_count">%1$d selected</string>
+
+    <!-- In-app update (direct build only) -->
+    <string name="update_available">Update available</string>
+    <string name="update_to">New version %1$s</string>
+    <string name="update_now">Update now</string>
+    <string name="update_later">Later</string>
 </resources>

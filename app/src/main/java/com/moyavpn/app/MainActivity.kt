@@ -4,16 +4,21 @@ import android.content.Intent
 import android.net.Uri
 import android.net.VpnService
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.moyavpn.app.data.Connection
 import com.moyavpn.app.ui.MainScreen
 import com.moyavpn.app.ui.MainViewModel
+import com.moyavpn.app.ui.SettingsScreen
 import com.moyavpn.app.ui.UiState
 import com.moyavpn.app.ui.theme.MoyaTheme
 import kotlinx.coroutines.delay
@@ -39,6 +44,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             MoyaTheme {
                 val state by vm.state.collectAsStateWithLifecycle()
+                val update by vm.update.collectAsStateWithLifecycle()
+                val settings by vm.settings.collectAsStateWithLifecycle()
+                var showSettings by remember { mutableStateOf(false) }
 
                 // Solange ein Tunnel laeuft: Traffic alle 2s aktualisieren
                 LaunchedEffect(state) {
@@ -47,20 +55,43 @@ class MainActivity : ComponentActivity() {
                         delay(2000)
                     }
                 }
+                // App-Liste erst laden, wenn die Einstellungen geoeffnet werden.
+                LaunchedEffect(showSettings) { if (showSettings) vm.loadApps() }
 
-                MainScreen(
-                    state = state,
-                    onLogin = vm::login,
-                    onToggle = { conn -> handleToggle(state, conn) },
-                    onLogout = vm::logout,
-                    onRetry = vm::retry,
-                    onOpenBot = ::openRenew,
-                    onGetAccess = ::openGetAccess,
-                    onOpenSupport = ::openSupport,
-                    onQuickConnect = vm::startTrial,
-                )
+                if (showSettings) {
+                    SettingsScreen(
+                        settings = settings,
+                        onBack = { showSettings = false },
+                        onMode = vm::setSplitMode,
+                        onToggleApp = vm::toggleApp,
+                        onAlwaysOn = ::openVpnSettings,
+                    )
+                } else {
+                    MainScreen(
+                        state = state,
+                        update = update,
+                        onLogin = vm::login,
+                        onToggle = { conn -> handleToggle(state, conn) },
+                        onLogout = vm::logout,
+                        onRetry = vm::retry,
+                        onOpenBot = ::openRenew,
+                        onGetAccess = ::openGetAccess,
+                        onOpenSupport = ::openSupport,
+                        onQuickConnect = vm::startTrial,
+                        onRefresh = vm::refreshAccount,
+                        onOpenSettings = { showSettings = true },
+                        onUpdate = ::openUrl,
+                        onDismissUpdate = vm::dismissUpdate,
+                    )
+                }
             }
         }
+    }
+
+    /** Beim Zurueckkehren in die App die Server-Liste still abgleichen. */
+    override fun onResume() {
+        super.onResume()
+        vm.refreshAccount()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -80,6 +111,16 @@ class MainActivity : ComponentActivity() {
 
     private fun openUrl(url: String) {
         runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+    }
+
+    /**
+     * Oeffnet die Android-VPN-Einstellungen, wo der Nutzer „Always-on VPN"
+     * fuer MoyaVPN aktivieren kann. Apps duerfen das aus Sicherheitsgruenden
+     * nicht selbst umschalten — daher der direkte Sprung in die Einstellungen.
+     */
+    private fun openVpnSettings() {
+        runCatching { startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) }
+            .onFailure { runCatching { startActivity(Intent(Settings.ACTION_SETTINGS)) } }
     }
 
     /**

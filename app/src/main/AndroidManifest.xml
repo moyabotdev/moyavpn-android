@@ -6,6 +6,18 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
+      Split-Tunneling: wir zeigen dem Nutzer die startbaren Apps zur Auswahl.
+      Der LAUNCHER-<queries>-Filter reicht dafuer aus — KEIN QUERY_ALL_PACKAGES
+      (und damit keine zusaetzliche Play-Deklaration) noetig.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
+    <!--
       Der VPN-Dienst selbst (android.net.VpnService) wird von der
       WireGuard-tunnel-Library (com.wireguard.android.backend.GoBackend$VpnService)
       bereitgestellt und automatisch ins Manifest gemerged. Wir muessen ihn hier

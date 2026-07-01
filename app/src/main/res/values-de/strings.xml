@@ -24,4 +24,35 @@
     <string name="quick_connect">Schnell verbinden (4h Test)</string>
     <string name="trial_notice">4h-Test aktiv. Hol dir vor Ablauf einen dauerhaften Zugangscode — danach abmelden und neu verbinden.</string>
     <string name="err_trial_limit">Test-Limit erreicht. Bitte hol dir Zugang in @moyavpnbot.</string>
+
+    <!-- Prominenter Test-Button (nur direct-Build) -->
+    <string name="trial_big">4 Stunden gratis testen — ohne Anmeldung</string>
+    <string name="have_code">Schon einen Code?</string>
+
+    <!-- Verbindungs-Status -->
+    <string name="status_connected">Verbunden</string>
+    <string name="status_connecting">Verbinde…</string>
+    <string name="status_disconnected">Nicht verbunden</string>
+
+    <!-- Einstellungen / Split-Tunneling / Always-on -->
+    <string name="settings">Einstellungen</string>
+    <string name="back">Zurück</string>
+    <string name="refresh">Aktualisieren</string>
+    <string name="loading">Lädt…</string>
+    <string name="always_on_title">Dauerhaft aktiv (Always-on)</string>
+    <string name="always_on_desc">Lege MoyaVPN in den Android-Einstellungen als \"immer aktiv\" fest — verbindet dann automatisch nach jedem Neustart.</string>
+    <string name="always_on_open">Android-VPN-Einstellungen öffnen</string>
+    <string name="split_title">VPN pro App (Split-Tunneling)</string>
+    <string name="split_desc">Lege fest, welche Apps das VPN nutzen.</string>
+    <string name="split_off">Aus — alle Apps über VPN</string>
+    <string name="split_include">Nur diese Apps über VPN</string>
+    <string name="split_exclude">Alle Apps außer diese</string>
+    <string name="split_pick">Apps auswählen</string>
+    <string name="split_selected_count">%1$d ausgewählt</string>
+
+    <!-- In-App-Update (nur direct-Build) -->
+    <string name="update_available">Update verfügbar</string>
+    <string name="update_to">Neue Version %1$s</string>
+    <string name="update_now">Jetzt aktualisieren</string>
+    <string name="update_later">Später</string>
 </resources>
