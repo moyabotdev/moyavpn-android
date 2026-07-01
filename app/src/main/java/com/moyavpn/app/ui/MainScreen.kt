@@ -150,13 +150,26 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit, onQuic
 
         if (BuildConfig.SHOW_PURCHASE) {
             // direct-Variante: 4h-Gratistest ist der auffaellige Primaer-Button.
+            // Zweizeilig (fett + kleinere Unterzeile), Hoehe waechst mit dem Text.
             Button(
                 onClick = onQuickConnect,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
             ) {
-                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.trial_big), fontWeight = FontWeight.Bold)
+                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        stringResource(R.string.trial_big),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        stringResource(R.string.trial_sub),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                    )
+                }
             }
             Spacer(Modifier.height(20.dp))
             Text(stringResource(R.string.have_code), style = MaterialTheme.typography.bodySmall)
@@ -225,7 +238,17 @@ private fun ReadyView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("MoyaVPN", fontWeight = FontWeight.Bold) },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.moyavpn_logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp),
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text("MoyaVPN", fontWeight = FontWeight.Bold)
+                    }
+                },
                 actions = {
                     IconButton(onClick = onRefresh) {
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh))

@@ -28,7 +28,8 @@
     <string name="err_trial_limit">Trial limit reached. Please get access in @moyavpnbot.</string>
 
     <!-- Prominent trial CTA (direct build only) -->
-    <string name="trial_big">Try 4 hours free — no sign-up</string>
+    <string name="trial_big">Connect now (4h)</string>
+    <string name="trial_sub">no Telegram sign-up needed</string>
     <string name="have_code">Already have a code?</string>
 
     <!-- Connection hero -->

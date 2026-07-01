@@ -26,7 +26,8 @@
     <string name="err_trial_limit">Лимит тестов исчерпан. Получите доступ в @moyavpnbot.</string>
 
     <!-- Заметная кнопка теста (только direct-сборка) -->
-    <string name="trial_big">4 часа бесплатно — без регистрации</string>
+    <string name="trial_big">Подключиться сейчас (4ч)</string>
+    <string name="trial_sub">без регистрации в Telegram-боте</string>
     <string name="have_code">Уже есть код?</string>
 
     <!-- Статус подключения -->

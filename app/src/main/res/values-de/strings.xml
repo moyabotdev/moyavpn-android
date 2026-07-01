@@ -26,7 +26,8 @@
     <string name="err_trial_limit">Test-Limit erreicht. Bitte hol dir Zugang in @moyavpnbot.</string>
 
     <!-- Prominenter Test-Button (nur direct-Build) -->
-    <string name="trial_big">4 Stunden gratis testen — ohne Anmeldung</string>
+    <string name="trial_big">Sofort verbinden (4h)</string>
+    <string name="trial_sub">ohne Anmeldung im Telegram Bot</string>
     <string name="have_code">Schon einen Code?</string>
 
     <!-- Verbindungs-Status -->
