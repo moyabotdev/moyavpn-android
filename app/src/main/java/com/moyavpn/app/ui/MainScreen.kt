@@ -31,16 +31,20 @@ import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.moyavpn.app.data.Connection
+import com.moyavpn.app.data.ServerPing
 import com.moyavpn.app.data.SplitTunnelStore
 import com.moyavpn.app.data.UpdateInfo
 
@@ -48,8 +52,12 @@ import com.moyavpn.app.data.UpdateInfo
 fun MainScreen(
     state: UiState,
     update: UpdateInfo?,
+    favoriteId: String?,
+    pings: Map<String, Int>,
     onLogin: (String) -> Unit,
     onToggle: (Connection) -> Unit,
+    onHeroTap: () -> Unit,
+    onFavorite: (Connection) -> Unit,
     onLogout: () -> Unit,
     onRetry: () -> Unit,
     onOpenBot: () -> Unit,
@@ -77,7 +85,8 @@ fun MainScreen(
                         }
                     }
                     is UiState.Ready -> ReadyView(
-                        state, onToggle, onLogout, onOpenBot, onOpenSupport,
+                        state, favoriteId, pings, onToggle, onHeroTap, onFavorite,
+                        onLogout, onOpenBot, onOpenSupport,
                         onGetAccess, onRefresh, onOpenSettings,
                     )
                 }
@@ -227,7 +236,11 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit, onQuic
 @Composable
 private fun ReadyView(
     state: UiState.Ready,
+    favoriteId: String?,
+    pings: Map<String, Int>,
     onToggle: (Connection) -> Unit,
+    onHeroTap: () -> Unit,
+    onFavorite: (Connection) -> Unit,
     onLogout: () -> Unit,
     onOpenBot: () -> Unit,
     onOpenSupport: () -> Unit,
@@ -268,7 +281,8 @@ private fun ReadyView(
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
             // Glanzstueck: animierter Verbindungs-Status auf einen Blick.
-            ConnectionHero(state)
+            // Tap auf die Animation verbindet den Favoriten / trennt.
+            ConnectionHero(state, onHeroTap)
 
             // Kopf: Nutzer + Ablauf + „Zeit nachkaufen“
             Row(
@@ -350,7 +364,10 @@ private fun ReadyView(
                         conn = conn,
                         active = state.activeServerId == conn.serverId,
                         busy = state.connectingTo == conn.serverId,
+                        favorite = favoriteId == conn.serverId,
+                        pingMs = pings[conn.serverId],
                         onClick = { onToggle(conn) },
+                        onFavorite = { onFavorite(conn) },
                     )
                 }
             }
@@ -358,9 +375,12 @@ private fun ReadyView(
     }
 }
 
-/** Animierter Status-Kopf: pulsierendes Schild in Akzentfarbe je nach Zustand. */
+/**
+ * Animierter Status-Kopf: pulsierendes Schild in Akzentfarbe je nach Zustand.
+ * Tap auf das Schild verbindet den Favoriten bzw. trennt (via [onTap]).
+ */
 @Composable
-private fun ConnectionHero(state: UiState.Ready) {
+private fun ConnectionHero(state: UiState.Ready, onTap: () -> Unit) {
     val active = state.account.connections.firstOrNull { it.serverId == state.activeServerId }
     val target = state.account.connections.firstOrNull { it.serverId == state.connectingTo }
     val connecting = state.connectingTo != null
@@ -387,7 +407,13 @@ private fun ConnectionHero(state: UiState.Ready) {
         Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(132.dp)) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(132.dp)
+                // Tap togglet die Verbindung; waehrend des Verbindens gesperrt.
+                .clickable(enabled = !connecting) { onTap() },
+        ) {
             if (animate) {
                 // nach aussen laufender, verblassender Ring
                 Box(
@@ -427,6 +453,15 @@ private fun ConnectionHero(state: UiState.Ready) {
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
+        // Tap-Hinweis: nur wenn nichts laeuft und nicht gerade verbunden wird.
+        if (!connected && !connecting) {
+            Text(
+                stringResource(R.string.hero_tap_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.outline,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -449,26 +484,49 @@ private fun TrafficBar(rx: Long, tx: Long) {
 }
 
 @Composable
-private fun ConnectionCard(conn: Connection, active: Boolean, busy: Boolean, onClick: () -> Unit) {
+private fun ConnectionCard(
+    conn: Connection,
+    active: Boolean,
+    busy: Boolean,
+    favorite: Boolean,
+    pingMs: Int?,
+    onClick: () -> Unit,
+    onFavorite: () -> Unit,
+) {
     val disabled = conn.status != "active"
     ElevatedCard(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.padding(16.dp),
+            Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(conn.flag ?: "🌐", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(conn.serverName, style = MaterialTheme.typography.titleMedium)
-                val sub = when (conn.status) {
-                    "active"   -> conn.expiresAt?.let { stringResource(R.string.until, it) }
-                                    ?: stringResource(R.string.status_active)
-                    "expired"  -> stringResource(R.string.status_expired)
-                    else        -> stringResource(R.string.status_disabled)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val sub = when (conn.status) {
+                        "active"   -> conn.expiresAt?.let { stringResource(R.string.until, it) }
+                                        ?: stringResource(R.string.status_active)
+                        "expired"  -> stringResource(R.string.status_expired)
+                        else        -> stringResource(R.string.status_disabled)
+                    }
+                    Text(sub, style = MaterialTheme.typography.bodySmall)
+                    if (!disabled) PingBadge(pingMs)
                 }
-                Text(sub, style = MaterialTheme.typography.bodySmall)
             }
-            Spacer(Modifier.width(12.dp))
+            // Favoriten-Stern: nur fuer aktive Server sinnvoll.
+            if (!disabled) {
+                IconButton(onClick = onFavorite) {
+                    Icon(
+                        if (favorite) Icons.Filled.Star else Icons.Filled.StarBorder,
+                        contentDescription = stringResource(
+                            if (favorite) R.string.favorite_remove else R.string.favorite_set
+                        ),
+                        tint = if (favorite) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.outline,
+                    )
+                }
+            }
             if (busy) {
                 CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
             } else {
@@ -480,6 +538,20 @@ private fun ConnectionCard(conn: Connection, active: Boolean, busy: Boolean, onC
             }
         }
     }
+}
+
+/** Kleine Latenz-Anzeige (nur Info): grün < 80 ms, gelb < 180 ms, sonst rot; „—" = nicht erreichbar. */
+@Composable
+private fun PingBadge(pingMs: Int?) {
+    if (pingMs == null) return   // noch nicht gemessen
+    Spacer(Modifier.width(8.dp))
+    val (label, color) = when {
+        pingMs == ServerPing.UNREACHABLE -> "—" to MaterialTheme.colorScheme.outline
+        pingMs < 80  -> "$pingMs ms" to Color(0xFF2E7D32)
+        pingMs < 180 -> "$pingMs ms" to Color(0xFFF9A825)
+        else         -> "$pingMs ms" to Color(0xFFC62828)
+    }
+    Text("• $label", style = MaterialTheme.typography.bodySmall, color = color)
 }
 
 /**

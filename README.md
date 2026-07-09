@@ -33,9 +33,28 @@ den Tunnel mit einem Tipp an/aus.
 | Netzwerk | `data/MoyaApi.kt`, `data/Models.kt` | Retrofit-Client + JSON-Modelle |
 | Token | `data/TokenStore.kt` | App-Token persistent (DataStore) |
 | Tunnel | `vpn/TunnelManager.kt` | WireGuard-GoBackend, Config parsen, an/aus |
+| Verbinden | `vpn/VpnConnector.kt` | Split anwenden, Handshake prüfen, **Fallback-Rotation** |
+| Tunnel-Zustand | `vpn/VpnState.kt` | prozessweite Wahrheit (UI **und** Widgets) |
+| Favorit/Cache | `data/SplitTunnelStore.kt`, `data/CachedServer.kt` | ⭐-Server + Server-Cache für Widgets |
+| Ping | `data/ServerPing.kt` | grobe Latenz-Anzeige (nur Info, **kein** Auto-Select) |
+| Widgets | `widget/*` | 1-Tap-Connect + Server-wechseln (Homescreen) |
 
 Der VPN-Dienst selbst kommt aus der WireGuard-Library und wird automatisch ins
 Manifest gemerged — kein eigener `VpnService` nötig.
+
+### Neu in dieser Version (Direct-Update, ohne Play)
+
+- **Tap auf die Status-Animation** verbindet den ⭐-Favoriten bzw. trennt.
+- **Favorit (⭐)** in der Serverliste = Standard für Hero-Tap und beide Widgets.
+  Bewusst **nicht** „schnellster Ping": ein naher RU-Server hätte die kleinste
+  Latenz, würde die Sperre aber nicht umgehen.
+- **Ping-Badge** je Server (grün/gelb/rot) — nur zur Orientierung.
+- **Auto-Rotation:** kommt beim gewählten Server kein Handshake (RX bleibt 0 in
+  ~8 s → DPI-Blockade?), schaltet die App automatisch auf den nächsten aktiven
+  Server (Favorit zuerst).
+- **Zwei Homescreen-Widgets:** *Verbinden* (Favorit an/aus) und *Server wechseln*
+  (nächster aktiver Server). Der erste Tap öffnet einmalig den Android-VPN-Dialog
+  (System-Zwang), danach schalten die Widgets im Hintergrund.
 
 ---
 

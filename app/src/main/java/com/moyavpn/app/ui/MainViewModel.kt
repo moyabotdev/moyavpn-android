@@ -7,13 +7,18 @@ import com.moyavpn.app.R
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.moyavpn.app.data.AccountResponse
+import com.moyavpn.app.data.CachedServer
 import com.moyavpn.app.data.Connection
 import com.moyavpn.app.data.MoyaApi
+import com.moyavpn.app.data.ServerPing
 import com.moyavpn.app.data.SplitTunnelStore
 import com.moyavpn.app.data.TokenStore
 import com.moyavpn.app.data.UpdateChecker
 import com.moyavpn.app.data.UpdateInfo
 import com.moyavpn.app.vpn.TunnelManager
+import com.moyavpn.app.vpn.VpnConnector
+import com.moyavpn.app.vpn.VpnState
+import com.moyavpn.app.widget.refreshWidgets
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -64,6 +69,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val _update = MutableStateFlow<UpdateInfo?>(null)
     val update: StateFlow<UpdateInfo?> = _update.asStateFlow()
 
+    // ServerId des angehefteten Favoriten (⭐) — Standard fuer Hero-Tap + Widgets.
+    private val _favorite = MutableStateFlow<String?>(null)
+    val favorite: StateFlow<String?> = _favorite.asStateFlow()
+
+    // Gemessene Latenzen je Server (nur Info-Anzeige, kein Auto-Select).
+    private val _pings = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val pings: StateFlow<Map<String, Int>> = _pings.asStateFlow()
+
     init {
         viewModelScope.launch {
             val token = tokenStore.token.first()
@@ -75,6 +88,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             splitStore.mode.combine(splitStore.packages) { m, p -> m to p }
                 .collect { (m, p) -> _settings.value = _settings.value.copy(mode = m, selected = p) }
         }
+        // Favorit live spiegeln.
+        viewModelScope.launch { splitStore.favorite.collect { _favorite.value = it } }
         checkUpdate()
     }
 
@@ -116,8 +131,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun logout() {
         viewModelScope.launch {
-            TunnelManager.disconnect(getApplication())
+            VpnConnector.disconnect(getApplication())
+            currentServerId = null
+            refreshWidgets(getApplication())
             tokenStore.clear()
+            splitStore.cacheServers(emptyList())
             _state.value = UiState.NeedsLogin
         }
     }
@@ -138,6 +156,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     account = acc,
                     activeServerId = if (TunnelManager.isUp) currentServerId else null,
                 )
+                onConnectionsLoaded(acc)
             }
             .onFailure { e ->
                 val res = if (e.message?.contains("401") == true) R.string.err_invalid_code
@@ -146,24 +165,115 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
     }
 
+    /** Nach jedem Account-Load: Server fuer Widgets cachen + Pings messen. */
+    private fun onConnectionsLoaded(acc: AccountResponse) {
+        viewModelScope.launch {
+            splitStore.cacheServers(CachedServer.fromConnections(acc.connections))
+        }
+        measurePings(acc.connections)
+    }
+
+    /** Latenzen aller aktiven Server parallel messen (nur Info). */
+    fun measurePings(connections: List<Connection>) {
+        viewModelScope.launch {
+            val hosts = connections
+                .filter { it.status == "active" }
+                .mapNotNull { c -> ServerPing.endpointHost(c.config)?.let { c.serverId to it } }
+                .toMap()
+            if (hosts.isEmpty()) return@launch
+            _pings.value = ServerPing.pingAll(hosts)
+        }
+    }
+
     private var currentServerId: String? = null
+
+    /** Favorit anheften / abwaehlen (Stern in der Serverliste). */
+    fun setFavorite(serverId: String) {
+        viewModelScope.launch {
+            val cur = splitStore.favorite.first()
+            splitStore.setFavorite(if (cur == serverId) null else serverId)
+            refreshWidgets(getApplication())
+        }
+    }
+
+    /**
+     * Welche Verbindung soll der „1-Tap" (Hero/Widget) nutzen? Der Favorit,
+     * sonst die erste aktive Verbindung. Null, wenn keine aktiv ist.
+     */
+    fun defaultConnection(): Connection? {
+        val ready = _state.value as? UiState.Ready ?: return null
+        val active = ready.account.connections.filter { it.status == "active" }
+        val favId = favorite.value
+        return active.firstOrNull { it.serverId == favId } ?: active.firstOrNull()
+    }
+
+    /**
+     * Hero-Tap / „Sofort verbinden": trennt, falls schon verbunden — sonst baut
+     * er den Favoriten mit automatischer Fallback-Rotation auf. Die VPN-Erlaubnis
+     * muss der Aufrufer (Activity) vorher sichergestellt haben.
+     */
+    fun smartToggle() {
+        val ready = _state.value as? UiState.Ready ?: return
+        if (ready.activeServerId != null) {
+            disconnect()
+            return
+        }
+        val ordered = VpnConnector.order(
+            CachedServer.fromConnections(ready.account.connections),
+            favorite.value,
+        )
+        if (ordered.isEmpty()) return
+        viewModelScope.launch {
+            _state.value = ready.copy(connectingTo = ordered.first().serverId, connectError = null)
+            VpnState.setConnecting(ordered.first().serverId)
+            val connected = VpnConnector.connectWithFallback(getApplication(), ordered)
+            currentServerId = connected?.serverId
+            val cur = _state.value as? UiState.Ready ?: ready
+            _state.value = if (connected != null) {
+                cur.copy(activeServerId = connected.serverId, connectingTo = null, connectError = null)
+            } else {
+                cur.copy(
+                    activeServerId = null,
+                    connectingTo = null,
+                    connectError = getApplication<Application>().getString(R.string.err_all_blocked),
+                )
+            }
+            refreshWidgets(getApplication())
+            if (connected != null) refreshStats()
+        }
+    }
+
+    /** Trennen (Hero-Tap bei aktiver Verbindung). */
+    fun disconnect() {
+        viewModelScope.launch {
+            VpnConnector.disconnect(getApplication())
+            currentServerId = null
+            (_state.value as? UiState.Ready)?.let {
+                _state.value = it.copy(activeServerId = null, connectingTo = null, rxBytes = 0, txBytes = 0)
+            }
+            refreshWidgets(getApplication())
+        }
+    }
 
     /**
      * Verbindet mit der gewählten Verbindung (oder trennt, wenn sie schon läuft).
-     * Beim Wechsel auf einen anderen Server trennt die AmneziaWG-Engine den alten
-     * Tunnel automatisch und baut den neuen auf.
+     * Explizite Kartenauswahl — hier KEINE Rotation, der Nutzer hat bewusst einen
+     * bestimmten Server gewaehlt. Beim Wechsel trennt die AmneziaWG-Engine den
+     * alten Tunnel automatisch und baut den neuen auf.
      */
     fun toggle(conn: Connection) {
         val ready = _state.value as? UiState.Ready ?: return
         viewModelScope.launch {
             if (ready.activeServerId == conn.serverId) {
-                TunnelManager.disconnect(getApplication())
+                VpnConnector.disconnect(getApplication())
                 currentServerId = null
                 _state.value = ready.copy(activeServerId = null, rxBytes = 0, txBytes = 0)
+                refreshWidgets(getApplication())
                 return@launch
             }
             // Spinner am Ziel-Server anzeigen
             _state.value = ready.copy(connectingTo = conn.serverId, connectError = null)
+            VpnState.setConnecting(conn.serverId)
             // Aktuelle Split-Tunneling-Wahl beim Verbinden anwenden.
             val mode = splitStore.mode.first()
             val pkgs = splitStore.packages.first().toList()
@@ -171,11 +281,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             runCatching { TunnelManager.connect(getApplication(), conn.config, splitKey, pkgs) }
                 .onSuccess {
                     currentServerId = conn.serverId
+                    VpnState.setActive(conn.serverId)
                     _state.value = ready.copy(activeServerId = conn.serverId, connectingTo = null)
+                    refreshWidgets(getApplication())
                     refreshStats()
                 }
                 .onFailure { e ->
                     currentServerId = null
+                    VpnState.setActive(null)
                     val reason = (e as? org.amnezia.awg.backend.BackendException)?.reason?.name
                     val msg = reason ?: "${e.javaClass.simpleName}: ${e.message ?: "unbekannt"}"
                     _state.value = ready.copy(
@@ -183,6 +296,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                         connectingTo = null,
                         connectError = msg,
                     )
+                    refreshWidgets(getApplication())
                 }
         }
     }
@@ -220,8 +334,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                             activeServerId = if (stillThere) ready.activeServerId else null,
                         )
                         if (!stillThere && ready.activeServerId != null) {
-                            TunnelManager.disconnect(getApplication())
+                            VpnConnector.disconnect(getApplication())
                             currentServerId = null
+                            refreshWidgets(getApplication())
                         }
                     } else {
                         _state.value = UiState.Ready(
@@ -229,6 +344,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                             activeServerId = if (TunnelManager.isUp) currentServerId else null,
                         )
                     }
+                    onConnectionsLoaded(acc)
                 }
                 // Fehler beim stillen Refresh bewusst ignorieren — alte Liste bleibt.
         }

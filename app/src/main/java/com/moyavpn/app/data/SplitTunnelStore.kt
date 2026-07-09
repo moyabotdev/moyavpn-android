@@ -21,9 +21,22 @@ class SplitTunnelStore(private val context: Context) {
 
     private val keyMode = stringPreferencesKey("split_mode")       // off | include | exclude
     private val keyPkgs = stringSetPreferencesKey("split_pkgs")
+    private val keyFav = stringPreferencesKey("favorite_server")   // serverId des ⭐-Servers
+    private val keyServers = stringPreferencesKey("cached_servers") // JSON der aktiven Server (fuer Widgets)
 
     val mode: Flow<String> = context.splitStore.data.map { it[keyMode] ?: MODE_OFF }
     val packages: Flow<Set<String>> = context.splitStore.data.map { it[keyPkgs] ?: emptySet() }
+
+    /** ServerId des angehefteten Favoriten (Standard fuer Hero-Tap + Widgets); null = keiner. */
+    val favorite: Flow<String?> = context.splitStore.data.map { it[keyFav] }
+
+    /**
+     * Zuletzt geladene aktive Verbindungen als leichtes Cache — damit die Widgets
+     * und die Proxy-Activity ohne Netzabruf verbinden koennen. Wird bei jedem
+     * Account-Load aktualisiert.
+     */
+    val cachedServers: Flow<List<CachedServer>> =
+        context.splitStore.data.map { CachedServer.listFromJson(it[keyServers]) }
 
     suspend fun setMode(m: String) {
         context.splitStore.edit { it[keyMode] = m }
@@ -31,6 +44,17 @@ class SplitTunnelStore(private val context: Context) {
 
     suspend fun setPackages(pkgs: Set<String>) {
         context.splitStore.edit { it[keyPkgs] = pkgs }
+    }
+
+    /** Favorit setzen bzw. abwaehlen (gleiche Id nochmal = entfernen). */
+    suspend fun setFavorite(serverId: String?) {
+        context.splitStore.edit {
+            if (serverId.isNullOrBlank()) it.remove(keyFav) else it[keyFav] = serverId
+        }
+    }
+
+    suspend fun cacheServers(servers: List<CachedServer>) {
+        context.splitStore.edit { it[keyServers] = CachedServer.listToJson(servers) }
     }
 
     companion object {

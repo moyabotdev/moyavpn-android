@@ -56,4 +56,18 @@
     <string name="update_to">Новая версия %1$s</string>
     <string name="update_now">Обновить сейчас</string>
     <string name="update_later">Позже</string>
+
+    <!-- Тап по анимации / избранное / авто-ротация -->
+    <string name="hero_tap_hint">Нажмите для подключения</string>
+    <string name="favorite_set">Сделать избранным</string>
+    <string name="favorite_remove">Убрать из избранного</string>
+    <string name="err_all_blocked">Ни один сервер не ответил — похоже, все подключения заблокированы. Попробуйте позже или продлите доступ.</string>
+
+    <!-- Виджеты на главном экране -->
+    <string name="widget_connect_label">MoyaVPN – Подключить</string>
+    <string name="widget_switch_label">MoyaVPN – Сменить сервер</string>
+    <string name="widget_switch_title">🔄 Сервер</string>
+    <string name="widget_tap_connect">Нажмите для подключения</string>
+    <string name="widget_tap_disconnect">Нажмите для отключения</string>
+    <string name="widget_login_first">Откройте приложение для входа</string>
 </resources>

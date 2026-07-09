@@ -58,4 +58,18 @@
     <string name="update_to">New version %1$s</string>
     <string name="update_now">Update now</string>
     <string name="update_later">Later</string>
+
+    <!-- Hero tap / favorite / auto-rotation -->
+    <string name="hero_tap_hint">Tap to connect</string>
+    <string name="favorite_set">Set as favorite</string>
+    <string name="favorite_remove">Remove favorite</string>
+    <string name="err_all_blocked">No server responded — all connections seem blocked. Try again later or top up time.</string>
+
+    <!-- Home screen widgets -->
+    <string name="widget_connect_label">MoyaVPN – Connect</string>
+    <string name="widget_switch_label">MoyaVPN – Switch server</string>
+    <string name="widget_switch_title">🔄 Server</string>
+    <string name="widget_tap_connect">Tap to connect</string>
+    <string name="widget_tap_disconnect">Tap to disconnect</string>
+    <string name="widget_login_first">Open app to log in</string>
 </resources>

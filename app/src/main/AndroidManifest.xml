@@ -60,5 +60,45 @@
             </intent-filter>
         </activity>
 
+        <!--
+          Unsichtbare Brücke für Widget-Taps: holt (nur beim ersten Mal) die
+          VPN-Erlaubnis und schaltet dann den Tunnel. Translucent + noHistory +
+          excludeFromRecents, damit sie nicht sichtbar haengt.
+        -->
+        <activity
+            android:name=".widget.WidgetProxyActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:launchMode="singleInstance" />
+
+        <!-- Homescreen-Widget: 1-Tap-Connect (Favorit) -->
+        <receiver
+            android:name=".widget.ConnectWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_connect_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_connect_info" />
+        </receiver>
+
+        <!-- Homescreen-Widget: Server wechseln -->
+        <receiver
+            android:name=".widget.SwitchWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_switch_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_switch_info" />
+        </receiver>
+
     </application>
 </manifest>

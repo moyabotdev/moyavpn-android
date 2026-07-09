@@ -27,15 +27,14 @@ class MainActivity : ComponentActivity() {
 
     private val vm: MainViewModel by viewModels()
 
-    // Merkt sich die Verbindung, die nach erteilter VPN-Erlaubnis gestartet werden soll.
-    private var pendingConnection: Connection? = null
+    // Merkt sich die Aktion, die nach erteilter VPN-Erlaubnis ausgefuehrt werden soll
+    // (Einzel-Server via Karte ODER Favorit-Verbindung via Hero-Tap).
+    private var pendingAction: (() -> Unit)? = null
 
     private val vpnPermission =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                pendingConnection?.let { vm.toggle(it) }
-            }
-            pendingConnection = null
+            if (result.resultCode == RESULT_OK) pendingAction?.invoke()
+            pendingAction = null
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,6 +45,8 @@ class MainActivity : ComponentActivity() {
                 val state by vm.state.collectAsStateWithLifecycle()
                 val update by vm.update.collectAsStateWithLifecycle()
                 val settings by vm.settings.collectAsStateWithLifecycle()
+                val favorite by vm.favorite.collectAsStateWithLifecycle()
+                val pings by vm.pings.collectAsStateWithLifecycle()
                 var showSettings by remember { mutableStateOf(false) }
 
                 // Solange ein Tunnel laeuft: Traffic alle 2s aktualisieren
@@ -70,8 +71,12 @@ class MainActivity : ComponentActivity() {
                     MainScreen(
                         state = state,
                         update = update,
+                        favoriteId = favorite,
+                        pings = pings,
                         onLogin = vm::login,
                         onToggle = { conn -> handleToggle(state, conn) },
+                        onHeroTap = { handleHeroTap(state) },
+                        onFavorite = { conn -> vm.setFavorite(conn.serverId) },
                         onLogout = vm::logout,
                         onRetry = vm::retry,
                         onOpenBot = ::openRenew,
@@ -145,12 +150,31 @@ class MainActivity : ComponentActivity() {
             vm.toggle(conn)   // Trennen — keine Erlaubnis noetig
             return
         }
+        withVpnPermission { vm.toggle(conn) }
+    }
+
+    /**
+     * Tap auf die Status-Animation: bei aktiver Verbindung trennen, sonst den
+     * Favoriten (mit Auto-Rotation) verbinden — nach VPN-Erlaubnis.
+     */
+    private fun handleHeroTap(state: UiState) {
+        val ready = state as? UiState.Ready ?: return
+        if (ready.activeServerId != null) {
+            vm.smartToggle()   // trennen — keine Erlaubnis noetig
+            return
+        }
+        if (vm.defaultConnection() == null) return   // nichts Aktives zum Verbinden
+        withVpnPermission { vm.smartToggle() }
+    }
+
+    /** Fuehrt [action] aus — nach dem VPN-Consent-Dialog, falls noch noetig. */
+    private fun withVpnPermission(action: () -> Unit) {
         val prepare: Intent? = VpnService.prepare(this)
         if (prepare != null) {
-            pendingConnection = conn
+            pendingAction = action
             vpnPermission.launch(prepare)
         } else {
-            vm.toggle(conn)
+            action()
         }
     }
 }
