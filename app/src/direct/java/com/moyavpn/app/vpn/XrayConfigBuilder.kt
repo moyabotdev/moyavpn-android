@@ -16,11 +16,13 @@ import org.json.JSONObject
  *  - sniffing an → Routing/DNS nach Domain statt nach (evtl. falscher) Client-IP
  *  - Port 53 → dedizierter dns-Outbound (1.1.1.1) → saubere Namensaufloesung
  *
- * [socksPort] ist der lokale SOCKS-Inbound, an den tun2socks die TUN-Pakete gibt.
+ * Inbound = "tun" (Fork autorepobot/xray-core): xray liest den TUN-fd aus der
+ * Env-Var xray.tun.fd (setzt CoreController.startLoop). Der App-VpnService baut das
+ * TUN + schuetzt den eigenen Prozess (addDisallowedApplication) → kein Uplink-Loop.
  */
 object XrayConfigBuilder {
 
-    fun build(p: XrayParams, socksPort: Int): String {
+    fun build(p: XrayParams): String {
         val realitySettings = JSONObject()
             .put("serverName", p.sni)
             .put("fingerprint", p.fingerprint)
@@ -61,12 +63,13 @@ object XrayConfigBuilder {
             .put("protocol", "dns")
             .put("settings", JSONObject().put("address", "1.1.1.1"))
 
-        val socksIn = JSONObject()
-            .put("tag", "socks-in")
-            .put("port", socksPort)
-            .put("listen", "127.0.0.1")
-            .put("protocol", "socks")
-            .put("settings", JSONObject().put("udp", true).put("auth", "noauth"))
+        // TUN-Inbound: liest den vom VpnService gelieferten fd (via env xray.tun.fd).
+        // port/listen werden vom tun-Inbound ignoriert. Sniffing → Routing nach Domain.
+        val tunIn = JSONObject()
+            .put("tag", "tun-in")
+            .put("port", 0)
+            .put("protocol", "tun")
+            .put("settings", JSONObject().put("name", "moya-tun").put("MTU", 1500))
             .put("sniffing", JSONObject()
                 .put("enabled", true)
                 .put("destOverride", JSONArray().put("http").put("tls").put("quic"))
@@ -83,7 +86,7 @@ object XrayConfigBuilder {
             .put("dns", JSONObject()
                 .put("servers", JSONArray().put("1.1.1.1").put("8.8.8.8"))
                 .put("queryStrategy", "UseIPv4"))
-            .put("inbounds", JSONArray().put(socksIn))
+            .put("inbounds", JSONArray().put(tunIn))
             // Reihenfolge wichtig: erster Outbound = Default fuer nicht gematchten Traffic.
             .put("outbounds", JSONArray().put(proxyOut).put(directOut).put(blockOut).put(dnsOut))
             .put("routing", JSONObject()

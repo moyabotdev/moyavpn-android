@@ -12,10 +12,8 @@ import com.moyavpn.app.data.XrayParams
  */
 object XrayTunnelManager {
 
-    private const val SOCKS_PORT = 10808   // lokaler SOCKS-Inbound; Lib bruecke TUN dorthin
-
     fun connect(context: Context, params: XrayParams) {
-        val config = XrayConfigBuilder.build(params, SOCKS_PORT)
+        val config = XrayConfigBuilder.build(params)
         val i = Intent(context.applicationContext, MoyaXrayVpnService::class.java).apply {
             action = MoyaXrayVpnService.ACTION_START
             putExtra(MoyaXrayVpnService.EXTRA_CONFIG, config)
