@@ -540,18 +540,22 @@ private fun ConnectionCard(
     }
 }
 
-/** Kleine Latenz-Anzeige (nur Info): grün < 80 ms, gelb < 180 ms, sonst rot; „—" = nicht erreichbar. */
+/**
+ * Latenz-Ampel (nur Info): grün = schnell, orange = ok, rot = langsam,
+ * grau = nicht erreichbar. Bewusst nur ein Punkt statt exakter Millisekunden —
+ * die ms-Zahl ist lang und sagt dem Nutzer wenig; die Farbe genügt zur Orientierung.
+ */
 @Composable
 private fun PingBadge(pingMs: Int?) {
     if (pingMs == null) return   // noch nicht gemessen
     Spacer(Modifier.width(8.dp))
-    val (label, color) = when {
-        pingMs == ServerPing.UNREACHABLE -> "—" to MaterialTheme.colorScheme.outline
-        pingMs < 80  -> "$pingMs ms" to Color(0xFF2E7D32)
-        pingMs < 180 -> "$pingMs ms" to Color(0xFFF9A825)
-        else         -> "$pingMs ms" to Color(0xFFC62828)
+    val color = when {
+        pingMs == ServerPing.UNREACHABLE -> MaterialTheme.colorScheme.outline  // grau
+        pingMs < 80  -> Color(0xFF2E7D32)  // grün
+        pingMs < 180 -> Color(0xFFF9A825)  // orange
+        else         -> Color(0xFFC62828)  // rot
     }
-    Text("• $label", style = MaterialTheme.typography.bodySmall, color = color)
+    Text("●", style = MaterialTheme.typography.bodyMedium, color = color)
 }
 
 /**

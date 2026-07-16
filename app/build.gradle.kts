@@ -60,10 +60,14 @@ android {
         create("direct") {
             dimension = "dist"
             buildConfigField("boolean", "SHOW_PURCHASE", "true")
+            // XRay/Reality-Pfad: heute nur im direct-Flavor. Zum Play-Rollout
+            // spaeter einfach hier true setzen + playImplementation der Lib ergaenzen.
+            buildConfigField("boolean", "ENABLE_XRAY", "true")
         }
         create("play") {
             dimension = "dist"
             buildConfigField("boolean", "SHOW_PURCHASE", "false")
+            buildConfigField("boolean", "ENABLE_XRAY", "false")
         }
     }
 
@@ -112,4 +116,13 @@ dependencies {
     // Transitive Abhaengigkeiten des tunnel-Moduls (bei AAR nicht automatisch):
     implementation("androidx.annotation:annotation:1.7.1")
     implementation("androidx.collection:collection:1.4.0")
+
+    // ── VPN-Tunnel: XRay-core (VLESS/Reality, Shadowsocks, Trojan, VMess) ──────
+    // xray-tunnel.aar wird in CI aus 2dust/AndroidLibXrayLite (gomobile, xray-core
+    // MPL-2.0) gebaut. NUR direct-Flavor. Dateibasiert + guarded, damit lokale
+    // Builds ohne die (nur in CI erzeugte) AAR nicht brechen.
+    val xrayAar = file("libs/xray-tunnel.aar")
+    if (xrayAar.exists()) {
+        "directImplementation"(files(xrayAar))
+    }
 }

@@ -77,6 +77,53 @@ jobs:
           done
           [ "$fail" = "0" ] && echo "✓ Alle Libs 16 KB-ausgerichtet" || { echo "16-KB-Check fehlgeschlagen"; exit 1; }
 
+      # ── XRay-core Native-Lib (VLESS/Reality, Shadowsocks, Trojan, VMess) ──────
+      # Nur fuer den direct-Flavor. Xray-core = MPL-2.0 (Play-tauglich).
+      - name: Checkout AndroidLibXrayLite
+        uses: actions/checkout@v4
+        with:
+          repository: 2dust/AndroidLibXrayLite
+          fetch-depth: 0
+          path: xray-src
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Build xray-tunnel.aar (gomobile)
+        run: |
+          set -e
+          # NDK aus dem von setup-android bereitgestellten SDK
+          export ANDROID_NDK_HOME="${ANDROID_NDK_ROOT:-$ANDROID_NDK_LATEST_HOME}"
+          echo "NDK: $ANDROID_NDK_HOME"
+          cd xray-src
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          go install golang.org/x/mobile/cmd/gobind@latest
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          go mod tidy
+          gomobile init
+          # 16-KB-Page-Size wie beim AWG-Build (Play-Pflicht ab targetSdk 35)
+          gomobile bind -v -androidapi 24 \
+            -target=android/arm64,android/amd64 \
+            -ldflags="-extldflags=-Wl,-z,max-page-size=16384,-z,common-page-size=16384" \
+            -o "$GITHUB_WORKSPACE/app/libs/xray-tunnel.aar" .
+          echo "xray-tunnel.aar bereit:"; ls -la "$GITHUB_WORKSPACE/app/libs/"
+
+      - name: Verify 16 KB alignment (xray)
+        run: |
+          set -e
+          mkdir -p /tmp/xraycheck && cd /tmp/xraycheck
+          unzip -o "$GITHUB_WORKSPACE/app/libs/xray-tunnel.aar" 'jni/arm64-v8a/*.so' 'jni/x86_64/*.so' || true
+          fail=0
+          for so in jni/arm64-v8a/*.so jni/x86_64/*.so; do
+            [ -f "$so" ] || continue
+            al=$(readelf -lW "$so" | awk '/LOAD/{print $NF}' | sort -u | tr '\n' ' ')
+            echo "$so → $al"
+            echo "$al" | grep -q 0x1000 && { echo "  ✗ 4 KB-Ausrichtung!"; fail=1; }
+          done
+          [ "$fail" = "0" ] && echo "✓ xray-Libs 16 KB-ausgerichtet" || { echo "16-KB-Check (xray) fehlgeschlagen"; exit 1; }
+
       # Website/Telegram-Verteilung → 'direct'-Variante (mit Kauf-Link)
       - name: Build MoyaVPN debug APK (direct)
         env:
