@@ -18,6 +18,7 @@ import com.moyavpn.app.data.UpdateInfo
 import com.moyavpn.app.vpn.TunnelManager
 import com.moyavpn.app.vpn.VpnConnector
 import com.moyavpn.app.vpn.VpnState
+import com.moyavpn.app.vpn.XrayBridge
 import com.moyavpn.app.widget.refreshWidgets
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -278,7 +279,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val mode = splitStore.mode.first()
             val pkgs = splitStore.packages.first().toList()
             val splitKey = SplitTunnelStore.keyFor(mode)
-            runCatching { TunnelManager.connect(getApplication(), conn.config, splitKey, pkgs) }
+            runCatching {
+                if (conn.protocol == "xray" && conn.xray != null) {
+                    runCatching { TunnelManager.disconnect(getApplication()) }   // AWG aus, falls aktiv
+                    XrayBridge.connect(getApplication(), conn.xray)
+                    if (!XrayBridge.isRunning) error("xray konnte nicht starten")
+                } else {
+                    runCatching { XrayBridge.disconnect(getApplication()) }       // xray aus, falls aktiv
+                    TunnelManager.connect(getApplication(), conn.config, splitKey, pkgs)
+                }
+            }
                 .onSuccess {
                     currentServerId = conn.serverId
                     VpnState.setActive(conn.serverId)
