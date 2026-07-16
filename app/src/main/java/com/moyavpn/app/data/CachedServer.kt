@@ -14,6 +14,8 @@ data class CachedServer(
     val serverName: String,
     val flag: String?,
     val config: String,
+    val protocol: String = "awg",     // "awg" | "xray"
+    val xray: XrayParams? = null,      // nur protocol=="xray"
 ) {
     companion object {
         private val adapter by lazy {
@@ -31,6 +33,6 @@ data class CachedServer(
         /** Wandelt aktive [Connection]s in speicherbare CachedServer um. */
         fun fromConnections(conns: List<Connection>): List<CachedServer> =
             conns.filter { it.status == "active" }
-                .map { CachedServer(it.serverId, it.serverName, it.flag, it.config) }
+                .map { CachedServer(it.serverId, it.serverName, it.flag, it.config, it.protocol, it.xray) }
     }
 }

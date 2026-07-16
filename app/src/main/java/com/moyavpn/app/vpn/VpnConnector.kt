@@ -40,6 +40,13 @@ object VpnConnector {
 
         for (srv in ordered) {
             VpnState.setConnecting(srv.serverId)
+            if (srv.protocol == "xray" && srv.xray != null) {
+                // XRay-Pfad (eigener VpnService + Core). Split-Tunnel macht die xray-Config selbst.
+                val ok = runCatching { XrayBridge.connect(app, srv.xray) }.isSuccess && XrayBridge.isRunning
+                if (ok) { VpnState.setActive(srv.serverId); return srv }
+                runCatching { XrayBridge.disconnect(app) }
+                continue
+            }
             val started = runCatching {
                 TunnelManager.connect(app, srv.config, splitKey, pkgs)
             }.isSuccess
@@ -51,12 +58,14 @@ object VpnConnector {
             // Aufgebaut, aber keine Antwort (DPI-Blockade?) → naechsten probieren
         }
         runCatching { TunnelManager.disconnect(app) }
+        runCatching { XrayBridge.disconnect(app) }
         VpnState.setActive(null)
         return null
     }
 
     /** Trennt und aktualisiert den geteilten Zustand. */
     suspend fun disconnect(context: Context) {
+        runCatching { XrayBridge.disconnect(context.applicationContext) }
         TunnelManager.disconnect(context.applicationContext)
         VpnState.setActive(null)
     }
