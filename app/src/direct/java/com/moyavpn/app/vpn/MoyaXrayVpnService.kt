@@ -62,6 +62,18 @@ class MoyaXrayVpnService : VpnService() {
         private fun signalFail(msg: String) {
             startSignal?.completeExceptionally(IllegalStateException(msg)); startSignal = null
         }
+
+        /**
+         * Stoppquittung: der Aufrufer wartet, bis hev + xray + TUN wirklich abgebaut
+         * sind, BEVOR ein anderer Tunnel (AWG) das TUN uebernimmt. Sonst liest hev
+         * ein weggezogenes TUN-fd → nativer Absturz → App schliesst sich.
+         */
+        @Volatile private var stopSignal: CompletableDeferred<Unit>? = null
+
+        fun armStop(): CompletableDeferred<Unit> =
+            CompletableDeferred<Unit>().also { stopSignal = it }
+
+        private fun signalStopped() { stopSignal?.complete(Unit); stopSignal = null }
     }
 
     private val callback = object : CoreCallbackHandler {
@@ -155,6 +167,7 @@ class MoyaXrayVpnService : VpnService() {
     private fun stopVpn() {
         teardown()
         try { ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE) } catch (_: Exception) {}
+        signalStopped()   // erst NACH vollstaendigem Abbau quittieren
         stopSelf()
     }
 

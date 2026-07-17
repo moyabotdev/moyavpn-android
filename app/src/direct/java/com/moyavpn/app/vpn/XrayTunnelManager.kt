@@ -34,11 +34,24 @@ object XrayTunnelManager {
         }
     }
 
-    fun disconnect(context: Context) {
+    /**
+     * Trennt und **wartet**, bis hev + xray + TUN vollstaendig abgebaut sind. Das ist
+     * beim Umschalten auf einen AWG-Server zwingend: sonst wuerde AWG das TUN
+     * uebernehmen, waehrend hev es noch liest → nativer Absturz (App schliesst sich).
+     * No-op, wenn kein XRay-Tunnel laeuft.
+     */
+    suspend fun disconnect(context: Context) {
+        if (!MoyaXrayVpnService.running) return
+        val stopped = MoyaXrayVpnService.armStop()
         val i = Intent(context.applicationContext, MoyaXrayVpnService::class.java).apply {
             action = MoyaXrayVpnService.ACTION_STOP
         }
         context.applicationContext.startService(i)
+        try {
+            withTimeout(8_000) { stopped.await() }
+        } catch (_: TimeoutCancellationException) {
+            // Nicht blockieren; Service raeumt sich ohnehin selbst ab.
+        }
     }
 
     val isRunning: Boolean get() = MoyaXrayVpnService.running

@@ -10,6 +10,6 @@ import com.moyavpn.app.data.XrayParams
 object XrayBridge {
     suspend fun connect(context: Context, params: XrayParams): Unit =
         throw UnsupportedOperationException("XRay ist im Play-Build nicht enthalten")
-    fun disconnect(context: Context) { }
+    suspend fun disconnect(context: Context) { }
     val isRunning: Boolean get() = false
 }

@@ -9,6 +9,6 @@ import com.moyavpn.app.data.XrayParams
  */
 object XrayBridge {
     suspend fun connect(context: Context, params: XrayParams) = XrayTunnelManager.connect(context, params)
-    fun disconnect(context: Context) = XrayTunnelManager.disconnect(context)
+    suspend fun disconnect(context: Context) = XrayTunnelManager.disconnect(context)
     val isRunning: Boolean get() = XrayTunnelManager.isRunning
 }
