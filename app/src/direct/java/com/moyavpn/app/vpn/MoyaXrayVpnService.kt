@@ -9,6 +9,9 @@ import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
+import com.moyavpn.app.R
 import kotlinx.coroutines.CompletableDeferred
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
@@ -98,17 +101,16 @@ class MoyaXrayVpnService : VpnService() {
                 NotificationChannel(CHANNEL_ID, "VPN-Verbindung", NotificationManager.IMPORTANCE_LOW)
             )
         }
-        val notif: Notification = Notification.Builder(this, CHANNEL_ID)
+        val notif: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("MoyaVPN")
             .setContentText("XRay-Verbindung aktiv")
-            .setSmallIcon(android.R.drawable.stat_sys_vpn_ic)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .build()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-        } else {
-            startForeground(NOTIF_ID, notif)
-        }
+        // ServiceCompat kennt den Typ-Parameter erst ab API 29 und ignoriert ihn davor.
+        ServiceCompat.startForeground(
+            this, NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        )
     }
 
     /** Wirft bei Fehler — der Aufrufer meldet das ueber [signalFail] zurueck. */
@@ -147,7 +149,7 @@ class MoyaXrayVpnService : VpnService() {
 
     private fun stopVpn() {
         teardown()
-        try { stopForeground(STOP_FOREGROUND_REMOVE) } catch (_: Exception) {}
+        try { ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE) } catch (_: Exception) {}
         stopSelf()
     }
 
