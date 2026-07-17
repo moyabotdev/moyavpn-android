@@ -10,3 +10,6 @@
 *.apk
 *.keystore
 !debug.keystore
+
+# In CI generierte Native-Libs (hev-socks5-tunnel)
+app/src/*/jniLibs/

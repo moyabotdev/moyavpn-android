@@ -7,20 +7,25 @@ import org.json.JSONObject
 /**
  * Baut die XRay-Client-Config (JSON) aus den [XrayParams] des Servers.
  *
- * Bewusst so gesetzt, dass genau die Fehler vermieden werden, an denen der
- * AmneziaVPN-Client bei VLESS/Reality scheiterte:
- *  - queryStrategy = UseIPv4  → keine AAAA-Records → kein Haengen an toten IPv6-Zielen
+ * Architektur wie v2rayNG/Hiddify: xray laeuft mit einem **SOCKS-Inbound** auf
+ * 127.0.0.1:[SOCKS_PORT]; die Bruecke TUN↔SOCKS macht hev-socks5-tunnel
+ * ([TProxyService]). Der native `tun`-Inbound von xray-core wird NICHT benutzt —
+ * er ist laut xray-Doku experimentell ("results nothing, or infinite loop") und
+ * war die Ursache fuer "verbunden, aber kein Durchsatz".
+ *
+ * Bewusste Details (vermeiden die Fehler, an denen der AmneziaVPN-Client scheiterte):
+ *  - queryStrategy = UseIPv4 → keine AAAA → kein Haengen an toten IPv6-Zielen
  *  - freedom domainStrategy UseIPv4 → egress bevorzugt IPv4
  *  - udp/443 (QUIC) → blackhole → Browser faellt sofort auf TCP zurueck
  *  - flow leer (kein xtls-rprx-vision) → kompatibel mit Mux
- *  - sniffing an → Routing/DNS nach Domain statt nach (evtl. falscher) Client-IP
- *  - Port 53 → dedizierter dns-Outbound (1.1.1.1) → saubere Namensaufloesung
- *
- * Inbound = "tun" (Fork autorepobot/xray-core): xray liest den TUN-fd aus der
- * Env-Var xray.tun.fd (setzt CoreController.startLoop). Der App-VpnService baut das
- * TUN + schuetzt den eigenen Prozess (addDisallowedApplication) → kein Uplink-Loop.
+ *  - sniffing an → Routing nach Domain statt nach (evtl. falscher) Client-IP
+ *  - DNS laeuft durch den Proxy (kein Leak, keine toten Client-DNS)
  */
 object XrayConfigBuilder {
+
+    /** SOCKS-Inbound-Port, an den hev-socks5-tunnel den TUN-Traffic weiterreicht. */
+    const val SOCKS_PORT = 10808
+    const val SOCKS_ADDR = "127.0.0.1"
 
     /**
      * Private/nicht-routbare Netze, ausgeschrieben. Bewusst NICHT "geoip:private":
@@ -71,18 +76,16 @@ object XrayConfigBuilder {
             .put("tag", "block")
             .put("protocol", "blackhole")
 
-        val dnsOut = JSONObject()
-            .put("tag", "dns-out")
-            .put("protocol", "dns")
-            .put("settings", JSONObject().put("address", "1.1.1.1"))
-
-        // TUN-Inbound: liest den vom VpnService gelieferten fd (via env xray.tun.fd).
-        // port/listen werden vom tun-Inbound ignoriert. Sniffing → Routing nach Domain.
-        val tunIn = JSONObject()
-            .put("tag", "tun-in")
-            .put("port", 0)
-            .put("protocol", "tun")
-            .put("settings", JSONObject().put("name", "moya-tun").put("MTU", 1500))
+        // SOCKS-Inbound: hev-socks5-tunnel reicht hier den gesamten TUN-Traffic hinein.
+        val socksIn = JSONObject()
+            .put("tag", "socks-in")
+            .put("protocol", "socks")
+            .put("listen", SOCKS_ADDR)
+            .put("port", SOCKS_PORT)
+            .put("settings", JSONObject()
+                .put("auth", "noauth")
+                .put("udp", true)
+                .put("address", SOCKS_ADDR))
             .put("sniffing", JSONObject()
                 .put("enabled", true)
                 .put("destOverride", JSONArray().put("http").put("tls").put("quic"))
@@ -92,7 +95,6 @@ object XrayConfigBuilder {
         PRIVATE_CIDRS.forEach { privateNets.put(it) }
 
         val rules = JSONArray()
-            .put(JSONObject().put("type", "field").put("port", "53").put("outboundTag", "dns-out"))
             .put(JSONObject().put("type", "field").put("port", "443").put("network", "udp").put("outboundTag", "block"))
             .put(JSONObject().put("type", "field").put("protocol", JSONArray().put("bittorrent")).put("outboundTag", "block"))
             .put(JSONObject().put("type", "field").put("ip", privateNets).put("outboundTag", "direct"))
@@ -102,9 +104,9 @@ object XrayConfigBuilder {
             .put("dns", JSONObject()
                 .put("servers", JSONArray().put("1.1.1.1").put("8.8.8.8"))
                 .put("queryStrategy", "UseIPv4"))
-            .put("inbounds", JSONArray().put(tunIn))
+            .put("inbounds", JSONArray().put(socksIn))
             // Reihenfolge wichtig: erster Outbound = Default fuer nicht gematchten Traffic.
-            .put("outbounds", JSONArray().put(proxyOut).put(directOut).put(blockOut).put(dnsOut))
+            .put("outbounds", JSONArray().put(proxyOut).put(directOut).put(blockOut))
             .put("routing", JSONObject()
                 .put("domainStrategy", "IPIfNonMatch")
                 .put("rules", rules))

@@ -18,14 +18,16 @@ import libv2ray.CoreController
 import libv2ray.Libv2ray
 
 /**
- * VpnService für den XRay-Pfad (nur direct-Flavor).
+ * VpnService fuer den XRay-Pfad (nur direct-Flavor).
  *
- * Ablauf: TUN via [VpnService.Builder] aufbauen → fd an [CoreController.startLoop].
- * Die Lib setzt daraus die Env-Var `xray.tun.fd`, die der `tun`-Inbound der Config
- * (siehe [XrayConfigBuilder]) ausliest — kein separates tun2socks noetig.
+ * Architektur (wie v2rayNG/Hiddify):
+ *  1. TUN via [VpnService.Builder] aufbauen.
+ *  2. xray-core mit SOCKS-Inbound starten — startLoop(config, 0), fd=0, damit xray
+ *     seinen experimentellen tun-Inbound NICHT nutzt.
+ *  3. [TProxyService] (hev-socks5-tunnel) bruecke TUN↔SOCKS.
  *
  * Socket-Loop-Schutz: [VpnService.Builder.addDisallowedApplication] mit dem eigenen
- * Paket → xrays Outbound-Sockets (im App-Prozess) umgehen das TUN.
+ * Paket → xrays Outbound-Sockets (und hevs Loopback zum SOCKS) umgehen das TUN.
  */
 class MoyaXrayVpnService : VpnService() {
 
@@ -41,14 +43,15 @@ class MoyaXrayVpnService : VpnService() {
         private const val CHANNEL_ID = "moyavpn_xray"
         private const val NOTIF_ID = 4711
 
+        private const val MTU = 1500
+        private const val TUN_IPV4 = "10.10.0.2"
+
         @Volatile var running = false
             private set
 
         /**
          * Startquittung: [XrayTunnelManager] legt sie vor dem startService an und wartet
          * darauf. Der Service erfuellt sie mit Erfolg — oder mit dem *echten* Fehler.
-         * Ohne das koennte der Aufrufer nur direkt nach dem (asynchronen) startService
-         * auf [running] pruefen und laege dabei immer daneben.
          */
         @Volatile private var startSignal: CompletableDeferred<Unit>? = null
 
@@ -77,7 +80,6 @@ class MoyaXrayVpnService : VpnService() {
             signalFail("keine XRay-Config uebergeben"); stopSelf(); return START_NOT_STICKY
         }
 
-        // Muss unmittelbar nach dem Start passieren, sonst killt Android den Dienst.
         try { goForeground() } catch (e: Exception) {
             Log.w(TAG, "startForeground fehlgeschlagen: ${e.message}")
         }
@@ -107,7 +109,6 @@ class MoyaXrayVpnService : VpnService() {
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .build()
-        // ServiceCompat kennt den Typ-Parameter erst ab API 29 und ignoriert ihn davor.
         ServiceCompat.startForeground(
             this, NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
         )
@@ -115,32 +116,36 @@ class MoyaXrayVpnService : VpnService() {
 
     /** Wirft bei Fehler — der Aufrufer meldet das ueber [signalFail] zurueck. */
     private fun startVpn(config: String) {
-        // Erneuter Start bei laufendem Tunnel: erst sauber abbauen (sonst zweiter
-        // establish()/startLoop auf altem State → Absturz).
         if (running || controller != null) teardown()
 
         val builder = Builder()
             .setSession("MoyaVPN")
-            .setMtu(1500)
-            .addAddress("10.10.0.2", 32)
+            .setMtu(MTU)
+            .addAddress(TUN_IPV4, 32)
             .addRoute("0.0.0.0", 0)
             .addDnsServer("1.1.1.1")
-        // Eigene App aus dem Tunnel ausschliessen → xray-Outbound loopt nicht
+        // Eigene App aus dem Tunnel ausschliessen → xray-Outbound + hev-Loopback loopen nicht
         try { builder.addDisallowedApplication(packageName) } catch (_: Exception) {}
 
         val pfd = builder.establish() ?: error("VPN-Erlaubnis fehlt (establish() gab null)")
         tun = pfd
 
+        // xray zuerst (SOCKS-Inbound), fd=0 → kein nativer tun-Inbound
         val c = Libv2ray.newCoreController(callback)
-        c.startLoop(config, pfd.fd)   // wirft, wenn xray die Config nicht akzeptiert
+        c.startLoop(config, 0)
         controller = c
+
+        // dann die TUN↔SOCKS-Bruecke
+        TProxyService.start(filesDir, pfd.fd, MTU, TUN_IPV4)
+
         running = true
-        Log.i(TAG, "XRay-Tunnel gestartet")
+        Log.i(TAG, "XRay-Tunnel gestartet (xray socks + hev)")
     }
 
     /** Ressourcen freigeben, ohne den Service zu beenden. */
     private fun teardown() {
         running = false
+        try { TProxyService.stop() } catch (e: Exception) { Log.w(TAG, "hev stop: ${e.message}") }
         try { controller?.stopLoop() } catch (e: Exception) { Log.w(TAG, "stopLoop: ${e.message}") }
         controller = null
         try { tun?.close() } catch (_: Exception) {}
@@ -153,11 +158,14 @@ class MoyaXrayVpnService : VpnService() {
         stopSelf()
     }
 
-    /** Traffic-Statistik (rx,tx) des proxy-Outbounds in Bytes; (0,0) wenn n/a. */
-    fun stats(): Pair<Long, Long> = try {
-        val c = controller ?: return 0L to 0L
-        c.queryStats("proxy", "uplink") to c.queryStats("proxy", "downlink")
-    } catch (e: Exception) { 0L to 0L }
+    /** Traffic-Statistik (rx,tx) in Bytes aus hev; (0,0) wenn n/a. */
+    fun stats(): Pair<Long, Long> {
+        val s = TProxyService.stats() ?: return 0L to 0L
+        // hev liefert [tx, rx]
+        val tx = s.getOrNull(0) ?: 0L
+        val rx = s.getOrNull(1) ?: 0L
+        return rx to tx
+    }
 
     override fun onDestroy() { teardown(); super.onDestroy() }
     override fun onRevoke() { stopVpn(); super.onRevoke() }

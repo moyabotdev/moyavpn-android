@@ -126,6 +126,60 @@ jobs:
           done
           [ "$fail" = "0" ] && echo "✓ xray-Libs 16 KB-ausgerichtet" || { echo "16-KB-Check (xray) fehlgeschlagen"; exit 1; }
 
+      # ── hev-socks5-tunnel (TUN↔SOCKS-Bruecke, wie v2rayNG/Hiddify) ─────────────
+      # In-Process-JNI-Lib libhev-socks5-tunnel.so. Der native tun-Inbound von
+      # xray-core ist experimentell ("results nothing") → wir bruecken stattdessen
+      # per hev auf xrays SOCKS-Inbound. Nur direct-Flavor.
+      - name: Checkout hev-socks5-tunnel
+        uses: actions/checkout@v4
+        with:
+          repository: heiher/hev-socks5-tunnel
+          submodules: recursive
+          fetch-depth: 1
+          path: hev-src
+
+      - name: Build libhev-socks5-tunnel.so (ndk-build)
+        run: |
+          set -e
+          export NDK_HOME="${ANDROID_NDK_ROOT:-$ANDROID_NDK_LATEST_HOME}"
+          echo "NDK: $NDK_HOME"
+          TMP="$(mktemp -d)"
+          mkdir -p "$TMP/jni"
+          ln -s "$GITHUB_WORKSPACE/hev-src" "$TMP/jni/hev-socks5-tunnel"
+          echo 'include $(call all-subdir-makefiles)' > "$TMP/jni/Android.mk"
+          cd "$TMP"
+          # PKGNAME bindet die JNI-Symbole an com/moyavpn/app/vpn/TProxyService.
+          # CLSNAME bleibt Default (TProxyService). 16-KB-Alignment steckt schon in
+          # der hev-Android.mk. Nur die ABIs des xray-AAR bauen (arm64 + x86_64).
+          "$NDK_HOME/ndk-build" \
+            NDK_PROJECT_PATH=. \
+            APP_BUILD_SCRIPT=jni/Android.mk \
+            "APP_ABI=arm64-v8a x86_64" \
+            APP_PLATFORM=android-24 \
+            NDK_LIBS_OUT="$TMP/libs" \
+            NDK_OUT="$TMP/obj" \
+            "APP_CFLAGS=-O3 -DPKGNAME=com/moyavpn/app/vpn" \
+            "APP_LDFLAGS=-Wl,--build-id=none -Wl,--hash-style=gnu"
+          for abi in arm64-v8a x86_64; do
+            dst="$GITHUB_WORKSPACE/app/src/direct/jniLibs/$abi"
+            mkdir -p "$dst"
+            cp "$TMP/libs/$abi/libhev-socks5-tunnel.so" "$dst/"
+            echo "staged: $dst/libhev-socks5-tunnel.so"
+          done
+          rm -rf "$TMP"
+
+      - name: Verify hev exports + 16 KB alignment
+        run: |
+          set -e
+          for so in app/src/direct/jniLibs/*/libhev-socks5-tunnel.so; do
+            al=$(readelf -lW "$so" | awk '/LOAD/{print $NF}' | sort -u | tr '\n' ' ')
+            echo "$so → $al"
+            echo "$al" | grep -q 0x1000 && { echo "  ✗ 4 KB-Ausrichtung!"; exit 1; }
+            # JNI-Einstieg muss vorhanden sein
+            nm -D "$so" 2>/dev/null | grep -q JNI_OnLoad || { echo "  ✗ kein JNI_OnLoad!"; exit 1; }
+          done
+          echo "✓ hev-Libs 16 KB-ausgerichtet + JNI_OnLoad vorhanden"
+
       # Website/Telegram-Verteilung → 'direct'-Variante (mit Kauf-Link)
       - name: Build MoyaVPN debug APK (direct)
         env:
