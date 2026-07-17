@@ -22,6 +22,19 @@ import org.json.JSONObject
  */
 object XrayConfigBuilder {
 
+    /**
+     * Private/nicht-routbare Netze, ausgeschrieben. Bewusst NICHT "geoip:private":
+     * das setzt die Datei geoip.dat voraus, die es in der eingebetteten Lib nicht gibt
+     * (xray bricht sonst schon beim Parsen ab: "failed to open geoip.dat").
+     */
+    private val PRIVATE_CIDRS = listOf(
+        "0.0.0.0/8", "10.0.0.0/8", "100.64.0.0/10", "127.0.0.0/8", "169.254.0.0/16",
+        "172.16.0.0/12", "192.0.0.0/24", "192.0.2.0/24", "192.88.99.0/24",
+        "192.168.0.0/16", "198.18.0.0/15", "198.51.100.0/24", "203.0.113.0/24",
+        "224.0.0.0/4", "240.0.0.0/4", "255.255.255.255/32",
+        "::1/128", "fc00::/7", "fe80::/10",
+    )
+
     fun build(p: XrayParams): String {
         val realitySettings = JSONObject()
             .put("serverName", p.sni)
@@ -75,11 +88,14 @@ object XrayConfigBuilder {
                 .put("destOverride", JSONArray().put("http").put("tls").put("quic"))
                 .put("routeOnly", false))
 
+        val privateNets = JSONArray()
+        PRIVATE_CIDRS.forEach { privateNets.put(it) }
+
         val rules = JSONArray()
             .put(JSONObject().put("type", "field").put("port", "53").put("outboundTag", "dns-out"))
             .put(JSONObject().put("type", "field").put("port", "443").put("network", "udp").put("outboundTag", "block"))
             .put(JSONObject().put("type", "field").put("protocol", JSONArray().put("bittorrent")).put("outboundTag", "block"))
-            .put(JSONObject().put("type", "field").put("ip", JSONArray().put("geoip:private")).put("outboundTag", "direct"))
+            .put(JSONObject().put("type", "field").put("ip", privateNets).put("outboundTag", "direct"))
 
         return JSONObject()
             .put("log", JSONObject().put("loglevel", "warning"))
