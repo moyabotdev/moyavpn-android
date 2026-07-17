@@ -282,8 +282,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             runCatching {
                 if (conn.protocol == "xray" && conn.xray != null) {
                     runCatching { TunnelManager.disconnect(getApplication()) }   // AWG aus, falls aktiv
+                    // wartet auf den Service und wirft dessen echten Fehler
                     XrayBridge.connect(getApplication(), conn.xray)
-                    if (!XrayBridge.isRunning) error("xray konnte nicht starten")
                 } else {
                     runCatching { XrayBridge.disconnect(getApplication()) }       // xray aus, falls aktiv
                     TunnelManager.connect(getApplication(), conn.config, splitKey, pkgs)

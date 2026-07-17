@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Der XRay-VpnService laeuft als Foreground-Service, sonst raeumt Android ihn weg,
+         sobald die App in den Hintergrund geht. VPN-Clients deklarieren dafuer den Typ
+         "specialUse" — einen eigenen VPN-Typ gibt es nicht. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
     <!-- XRay-VpnService (nur direct-Flavor). AWG-Service kommt aus der Library. -->
     <application>
         <service
             android:name=".vpn.MoyaXrayVpnService"
             android:permission="android.permission.BIND_VPN_SERVICE"
+            android:foregroundServiceType="specialUse"
             android:exported="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="vpn" />
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
