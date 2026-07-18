@@ -45,6 +45,9 @@
     <string name="always_on_title">Always-on VPN</string>
     <string name="always_on_desc">Set MoyaVPN as \"always-on\" in Android settings so it reconnects automatically after every reboot.</string>
     <string name="always_on_open">Open Android VPN settings</string>
+    <string name="diag_title">Diagnostics</string>
+    <string name="diag_desc">Share the connection log with support if XRay has trouble connecting.</string>
+    <string name="diag_share">Share log</string>
     <string name="split_title">Per-app VPN (split tunneling)</string>
     <string name="split_desc">Choose which apps use the VPN.</string>
     <string name="split_off">Off — all apps use the VPN</string>

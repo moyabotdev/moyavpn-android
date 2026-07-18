@@ -43,6 +43,9 @@
     <string name="always_on_title">Dauerhaft aktiv (Always-on)</string>
     <string name="always_on_desc">Lege MoyaVPN in den Android-Einstellungen als \"immer aktiv\" fest — verbindet dann automatisch nach jedem Neustart.</string>
     <string name="always_on_open">Android-VPN-Einstellungen öffnen</string>
+    <string name="diag_title">Diagnose</string>
+    <string name="diag_desc">Teile das Verbindungs-Log mit dem Support, wenn XRay Probleme beim Verbinden macht.</string>
+    <string name="diag_share">Log teilen</string>
     <string name="split_title">VPN pro App (Split-Tunneling)</string>
     <string name="split_desc">Lege fest, welche Apps das VPN nutzen.</string>
     <string name="split_off">Aus — alle Apps über VPN</string>

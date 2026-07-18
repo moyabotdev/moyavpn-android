@@ -43,6 +43,9 @@
     <string name="always_on_title">Постоянный VPN (Always-on)</string>
     <string name="always_on_desc">Задайте MoyaVPN как \"постоянный\" в настройках Android — тогда он подключается автоматически после каждой перезагрузки.</string>
     <string name="always_on_open">Открыть настройки VPN в Android</string>
+    <string name="diag_title">Диагностика</string>
+    <string name="diag_desc">Поделитесь журналом подключения с поддержкой, если XRay не подключается.</string>
+    <string name="diag_share">Поделиться журналом</string>
     <string name="split_title">VPN по приложениям</string>
     <string name="split_desc">Выберите, какие приложения используют VPN.</string>
     <string name="split_off">Выкл. — все приложения через VPN</string>

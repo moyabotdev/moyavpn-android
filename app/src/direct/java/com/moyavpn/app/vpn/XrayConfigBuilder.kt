@@ -40,7 +40,15 @@ object XrayConfigBuilder {
         "::1/128", "fc00::/7", "fe80::/10",
     )
 
-    fun build(p: XrayParams): String {
+    /** Dateiname des xray-Fehlerlogs im filesDir (fuer den „Log teilen“-Knopf). */
+    const val LOG_FILE = "xray.log"
+
+    /**
+     * @param errorLogPath absoluter Pfad, in den xray sein Fehlerlog schreibt (Diagnose).
+     *   Ist er gesetzt, laeuft xray auf loglevel=debug — damit der Reality/uTLS-Handshake
+     *   Schritt fuer Schritt protokolliert wird. null → nur „warning“, kein Datei-Log.
+     */
+    fun build(p: XrayParams, errorLogPath: String? = null): String {
         val realitySettings = JSONObject()
             .put("serverName", p.sni)
             .put("fingerprint", p.fingerprint)
@@ -99,8 +107,14 @@ object XrayConfigBuilder {
             .put(JSONObject().put("type", "field").put("protocol", JSONArray().put("bittorrent")).put("outboundTag", "block"))
             .put(JSONObject().put("type", "field").put("ip", privateNets).put("outboundTag", "direct"))
 
+        val logObj = if (errorLogPath != null) {
+            JSONObject().put("loglevel", "debug").put("error", errorLogPath)
+        } else {
+            JSONObject().put("loglevel", "warning")
+        }
+
         return JSONObject()
-            .put("log", JSONObject().put("loglevel", "warning"))
+            .put("log", logObj)
             .put("dns", JSONObject()
                 .put("servers", JSONArray().put("1.1.1.1").put("8.8.8.8"))
                 .put("queryStrategy", "UseIPv4"))

@@ -5,6 +5,7 @@ import android.content.Intent
 import com.moyavpn.app.data.XrayParams
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
+import java.io.File
 
 /**
  * Startet/stoppt den XRay-VpnService (nur direct-Flavor). Pendant zu [TunnelManager]
@@ -20,7 +21,10 @@ object XrayTunnelManager {
      * ablehnt oder das TUN nicht aufgebaut werden kann.
      */
     suspend fun connect(context: Context, params: XrayParams) {
-        val config = XrayConfigBuilder.build(params)
+        // Frisches Diagnose-Log je Verbindungsversuch (der „Log teilen“-Knopf liest es).
+        val logFile = File(context.applicationContext.filesDir, XrayConfigBuilder.LOG_FILE)
+        try { logFile.delete() } catch (_: Exception) {}
+        val config = XrayConfigBuilder.build(params, logFile.absolutePath)
         val started = MoyaXrayVpnService.armStart()
         val i = Intent(context.applicationContext, MoyaXrayVpnService::class.java).apply {
             action = MoyaXrayVpnService.ACTION_START
