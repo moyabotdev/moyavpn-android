@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_hint">Introduce tu código de acceso de la app. Lo obtienes en MoyaBot con /app.</string>
+    <string name="code_label">Código de acceso</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="no_access_yet">¿Aún no tienes acceso?</string>
+    <string name="get_access">Obtener acceso por Telegram</string>
+    <string name="retry">Reintentar</string>
+    <string name="other_code">Introducir otro código</string>
+    <string name="valid_until">Válido hasta %1$s</string>
+    <string name="buy_time">Recargar tiempo</string>
+    <string name="your_connections">Tus conexiones</string>
+    <string name="support">Soporte</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="connect_failed">Error de conexión: %1$s</string>
+    <string name="status_active">activo</string>
+    <string name="status_expired">caducado</string>
+    <string name="status_disabled">desactivado</string>
+    <string name="until">hasta %1$s</string>
+    <string name="connect">Conectar</string>
+    <string name="disconnect">Desconectar</string>
+    <string name="err_invalid_code">Código no válido o caducado.</string>
+    <string name="err_server">No se pudo conectar con el servidor. Inténtalo más tarde.</string>
+    <string name="quick_connect">VPN gratis · 100 MB/día</string>
+    <string name="trial_notice">Estás en el servidor gratis (100 MB/día). Para datos ilimitados y servidores más rápidos, recarga en @moyavpnbot.</string>
+    <string name="err_trial_limit">Límite de prueba alcanzado. Consigue acceso en @moyavpnbot.</string>
+
+    <string name="trial_big">Usar gratis</string>
+    <string name="trial_sub">Servidor gratis · 100 MB al día</string>
+    <string name="have_code">¿Ya tienes un código?</string>
+
+    <string name="status_connected">Conectado</string>
+    <string name="status_connecting">Conectando…</string>
+    <string name="status_disconnected">No conectado</string>
+
+    <string name="settings">Ajustes</string>
+    <string name="back">Atrás</string>
+    <string name="refresh">Actualizar</string>
+    <string name="loading">Cargando…</string>
+    <string name="always_on_title">VPN siempre activa (always-on)</string>
+    <string name="always_on_desc">Configura MoyaVPN como \"siempre activa\" en los ajustes de Android para que se reconecte automáticamente tras cada reinicio.</string>
+    <string name="always_on_open">Abrir ajustes de VPN de Android</string>
+    <string name="split_title">VPN por aplicación</string>
+    <string name="split_desc">Elige qué apps usan la VPN.</string>
+    <string name="split_off">Desactivado — todas las apps por la VPN</string>
+    <string name="split_include">Solo estas apps por la VPN</string>
+    <string name="split_exclude">Todas las apps excepto estas</string>
+    <string name="split_pick">Seleccionar apps</string>
+    <string name="split_selected_count">%1$d seleccionadas</string>
+
+    <string name="update_available">Actualización disponible</string>
+    <string name="update_to">Nueva versión %1$s</string>
+    <string name="update_now">Actualizar ahora</string>
+    <string name="update_later">Más tarde</string>
+
+    <string name="hero_tap_hint">Toca para conectar</string>
+    <string name="favorite_set">Marcar como favorito</string>
+    <string name="favorite_remove">Quitar de favoritos</string>
+    <string name="err_all_blocked">Ningún servidor respondió — todas las conexiones parecen bloqueadas. Inténtalo más tarde o recarga tiempo.</string>
+
+    <string name="widget_connect_label">MoyaVPN – Conectar</string>
+    <string name="widget_switch_label">MoyaVPN – Cambiar de servidor</string>
+    <string name="widget_switch_title">🔄 Servidor</string>
+    <string name="widget_tap_connect">Toca para conectar</string>
+    <string name="widget_tap_disconnect">Toca para desconectar</string>
+    <string name="widget_login_first">Abre la app para iniciar sesión</string>
+    <string name="watchdog_title">Guardián de conexión</string>
+    <string name="watchdog_on">Activado — cambia auto si hay bloqueo</string>
+    <string name="watchdog_off">Desactivado</string>
+    <string name="watchdog_desc">Comprueba continuamente si los datos pasan de verdad y cambia de servidor automáticamente si el actual se bloquea.</string>
+    <string name="watchdog_notif_channel">Guardián de conexión</string>
+    <string name="watchdog_notif_title">Servidor cambiado</string>
+    <string name="watchdog_notif_text">Bloqueo detectado — reconectado vía %1$s</string>
+    <string name="connected_for">Conectado desde hace %1$s</string>
+    <string name="upgrade_btn">Cambia a ilimitado &amp; servidores más rápidos</string>
+    <string name="free_usage_title">Datos gratis hoy</string>
+    <string name="free_usage_remaining">%1$d MB restantes · se reinicia a medianoche</string>
+    <string name="watchdog_premium_only">Solo Premium</string>
+    <string name="watchdog_premium_title">Cambio automático de servidor</string>
+    <string name="watchdog_premium_desc">El cambio automático de servidor cuando uno se bloquea está disponible con premium (crédito de tiempo y servidores premium). Siempre estás en línea — los bloqueos se detectan y resuelven automáticamente.</string>
+    <string name="close">Cerrar</string>
+</resources>
