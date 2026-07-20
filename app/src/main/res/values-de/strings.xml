@@ -82,4 +82,8 @@
     <string name="upgrade_btn">Upgrade — unbegrenzt &amp; schnellere Server</string>
     <string name="free_usage_title">Gratis-Volumen heute</string>
     <string name="free_usage_remaining">%1$d MB übrig · Reset um Mitternacht</string>
+    <string name="watchdog_premium_only">Nur mit Premium</string>
+    <string name="watchdog_premium_title">Automatischer Server-Wechsel</string>
+    <string name="watchdog_premium_desc">Automatischer Server-Wechsel bei Sperren gibt es nur mit Premium (Zeitguthaben und Premium-Server). Damit bist du immer online — Blockaden werden automatisch erkannt und gelöst.</string>
+    <string name="close">Schließen</string>
 </resources>

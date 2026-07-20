@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Refresh
@@ -366,11 +367,13 @@ private fun ReadyView(
                 }
             }
 
-            // Verbindungswächter — Schnellschalter direkt hier (auch in den Einstellungen).
+            // Verbindungswächter — nur mit ≥2 Servern (Premium) sinnvoll; sonst Upsell.
+            val premiumServers = state.account.connections.count { it.status == "active" } >= 2
+            var showWatchdogUpsell by remember { mutableStateOf(false) }
             Surface(
-                onClick = { onWatchdog(!watchdogOn) },
+                onClick = { if (premiumServers) onWatchdog(!watchdogOn) else showWatchdogUpsell = true },
                 shape = RoundedCornerShape(12.dp),
-                color = if (watchdogOn) MaterialTheme.colorScheme.secondaryContainer
+                color = if (watchdogOn && premiumServers) MaterialTheme.colorScheme.secondaryContainer
                         else MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth(),
             ) {
@@ -383,13 +386,42 @@ private fun ReadyView(
                     Column(Modifier.weight(1f)) {
                         Text(stringResource(R.string.watchdog_title), style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            stringResource(if (watchdogOn) R.string.watchdog_on else R.string.watchdog_off),
+                            stringResource(
+                                when {
+                                    !premiumServers -> R.string.watchdog_premium_only
+                                    watchdogOn      -> R.string.watchdog_on
+                                    else            -> R.string.watchdog_off
+                                }
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Switch(checked = watchdogOn, onCheckedChange = onWatchdog)
+                    if (premiumServers) {
+                        Switch(checked = watchdogOn, onCheckedChange = onWatchdog)
+                    } else {
+                        Icon(Icons.Default.Lock, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                    }
                 }
+            }
+            if (showWatchdogUpsell) {
+                AlertDialog(
+                    onDismissRequest = { showWatchdogUpsell = false },
+                    icon = { Text("🛡", style = MaterialTheme.typography.headlineSmall) },
+                    title = { Text(stringResource(R.string.watchdog_premium_title)) },
+                    text = { Text(stringResource(R.string.watchdog_premium_desc)) },
+                    confirmButton = {
+                        TextButton(onClick = { showWatchdogUpsell = false; onGetAccess() }) {
+                            Text(stringResource(R.string.upgrade_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showWatchdogUpsell = false }) {
+                            Text(stringResource(R.string.close))
+                        }
+                    },
+                )
             }
 
             Text(

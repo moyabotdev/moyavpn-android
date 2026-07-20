@@ -82,4 +82,8 @@
     <string name="upgrade_btn">Апгрейд — безлимит и быстрые серверы</string>
     <string name="free_usage_title">Бесплатный трафик сегодня</string>
     <string name="free_usage_remaining">%1$d МБ осталось · сброс в полночь</string>
+    <string name="watchdog_premium_only">Только Premium</string>
+    <string name="watchdog_premium_title">Автосмена сервера</string>
+    <string name="watchdog_premium_desc">Автоматическая смена сервера при блокировке доступна с Premium (баланс времени и премиум-серверы). Вы всегда онлайн — блокировки распознаются и решаются автоматически.</string>
+    <string name="close">Закрыть</string>
 </resources>

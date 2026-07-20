@@ -82,7 +82,10 @@ object ConnectivityWatchdog {
         var strikes = 0
         while (coroutineContext.isActive) {
             if (VpnState.activeServerId.value != sessionId) return   // Sitzung gewechselt
-            if (store.watchdog.first()) {
+            // Nur sinnvoll mit mindestens 2 Servern (Premium) — sonst gibt es kein
+            // Rotationsziel. Free-Tier (nur 1 Server) probt gar nicht (spart Akku).
+            val canRotate = store.cachedServers.first().size >= 2
+            if (store.watchdog.first() && canRotate) {
                 if (probeOk()) {
                     strikes = 0
                 } else {
@@ -93,7 +96,7 @@ object ConnectivityWatchdog {
                     }
                 }
             } else {
-                strikes = 0   // Waechter aus → nur passiv weiterlaufen
+                strikes = 0   // Waechter aus oder nur 1 Server → passiv weiterlaufen
             }
             delay(CHECK_INTERVAL_MS)
         }

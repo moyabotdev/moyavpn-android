@@ -84,4 +84,8 @@
     <string name="upgrade_btn">Upgrade — unlimited &amp; faster servers</string>
     <string name="free_usage_title">Free data today</string>
     <string name="free_usage_remaining">%1$d MB left · resets at midnight</string>
+    <string name="watchdog_premium_only">Premium only</string>
+    <string name="watchdog_premium_title">Auto server switch</string>
+    <string name="watchdog_premium_desc">Automatic server switching when a server gets blocked is available with premium (time credit and premium servers). You stay online — blocks are detected and resolved automatically.</string>
+    <string name="close">Close</string>
 </resources>
