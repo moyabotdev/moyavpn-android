@@ -82,4 +82,6 @@
     <string name="watchdog_notif_text">Block detected — reconnected via %1$s</string>
     <string name="connected_for">Connected for %1$s</string>
     <string name="upgrade_btn">Upgrade — unlimited &amp; faster servers</string>
+    <string name="free_usage_title">Free data today</string>
+    <string name="free_usage_remaining">%1$d MB left · resets at midnight</string>
 </resources>

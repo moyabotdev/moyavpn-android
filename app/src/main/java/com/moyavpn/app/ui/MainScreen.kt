@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Refresh
@@ -343,6 +344,12 @@ private fun ReadyView(
                 TrafficBar(state.rxBytes, state.txBytes)
                 ConnectedTime()
             }
+            // Free-Server: Tagesverbrauch + Upgrade-Anreiz (nur wenn der aktive Server der Free-Server ist).
+            state.account.connections.firstOrNull { it.serverId == state.activeServerId }?.let { ac ->
+                if (ac.serverId == "free" && ac.dailyLimitMb != null) {
+                    FreeUsageCard(ac.dailyUsedMb ?: 0, ac.dailyLimitMb, onGetAccess)
+                }
+            }
 
             state.connectError?.let { err ->
                 Surface(
@@ -513,6 +520,55 @@ private fun ConnectionHero(state: UiState.Ready, onTap: () -> Unit) {
     }
 }
 
+/**
+ * Free-Server-Tagesverbrauch: Fortschrittsbalken „X / 100 MB heute" + Restvolumen
+ * + Upgrade-CTA. Praktischer Ersteindruck fürs Gratis-Tier — Design wie Premium.
+ */
+@Composable
+private fun FreeUsageCard(usedMb: Int, limitMb: Int, onUpgrade: () -> Unit) {
+    val frac = if (limitMb > 0) (usedMb.toFloat() / limitMb).coerceIn(0f, 1f) else 0f
+    val remaining = (limitMb - usedMb).coerceAtLeast(0)
+    val nearLimit = frac >= 0.8f
+    val onBg = MaterialTheme.colorScheme.onTertiaryContainer
+    Surface(
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.CardGiftcard, contentDescription = null,
+                    modifier = Modifier.size(18.dp), tint = onBg)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.free_usage_title), style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold, color = onBg, modifier = Modifier.weight(1f))
+                Text("$usedMb / $limitMb MB", style = MaterialTheme.typography.bodyMedium, color = onBg)
+            }
+            Spacer(Modifier.height(8.dp))
+            Box(
+                Modifier.fillMaxWidth().height(8.dp)
+                    .background(onBg.copy(alpha = 0.15f), RoundedCornerShape(4.dp)),
+            ) {
+                Box(
+                    Modifier.fillMaxWidth(frac).height(8.dp).background(
+                        if (nearLimit) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        RoundedCornerShape(4.dp),
+                    ),
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.free_usage_remaining, remaining),
+                style = MaterialTheme.typography.labelSmall, color = onBg.copy(alpha = 0.8f))
+            Spacer(Modifier.height(10.dp))
+            FilledTonalButton(onClick = onUpgrade, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.upgrade_btn))
+            }
+        }
+    }
+}
+
 @Composable
 private fun TrafficBar(rx: Long, tx: Long) {
     Surface(
@@ -547,7 +603,16 @@ private fun ConnectionCard(
             Modifier.padding(start = 14.dp, top = 5.dp, bottom = 5.dp, end = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(conn.flag ?: "🌐", style = MaterialTheme.typography.titleLarge)
+            if (conn.serverId == "free") {
+                Icon(
+                    Icons.Default.CardGiftcard,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(26.dp),
+                )
+            } else {
+                Text(conn.flag ?: "🌐", style = MaterialTheme.typography.titleLarge)
+            }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text(conn.serverName, style = MaterialTheme.typography.titleSmall)

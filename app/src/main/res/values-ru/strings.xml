@@ -80,4 +80,6 @@
     <string name="watchdog_notif_text">Обнаружена блокировка — переподключение через %1$s</string>
     <string name="connected_for">Подключено: %1$s</string>
     <string name="upgrade_btn">Апгрейд — безлимит и быстрые серверы</string>
+    <string name="free_usage_title">Бесплатный трафик сегодня</string>
+    <string name="free_usage_remaining">%1$d МБ осталось · сброс в полночь</string>
 </resources>

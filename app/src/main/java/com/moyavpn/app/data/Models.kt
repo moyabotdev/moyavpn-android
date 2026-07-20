@@ -34,6 +34,8 @@ data class Connection(
     @Json(name = "expires_at")  val expiresAt: String?,
     val config: String,                       // vollstaendige WireGuard/AmneziaWG .conf
     val awg: AwgParams?,                       // Obfuskations-Parameter (nur AmneziaWG)
+    @Json(name = "daily_used_mb")  val dailyUsedMb: Int? = null,   // nur Free-Server: heute verbraucht
+    @Json(name = "daily_limit_mb") val dailyLimitMb: Int? = null,  // nur Free-Server: Tageslimit (100)
 )
 
 /** AmneziaWG-Obfuskationsparameter — vom MVP-WireGuard-Core ignoriert. */
