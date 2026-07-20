@@ -24,7 +24,7 @@
     <string name="err_invalid_code">Invalid or expired code.</string>
     <string name="err_server">Could not reach the server. Please try again later.</string>
     <string name="quick_connect">Free VPN · 100 MB/day</string>
-    <string name="trial_notice">You're on the free server (100 MB/day). For unlimited data and faster servers, top up in @moyavpnbot.</string>
+    <string name="trial_notice">You are on the free server (100 MB/day). For unlimited data and faster servers, top up in @moyavpnbot.</string>
     <string name="err_trial_limit">Trial limit reached. Please get access in @moyavpnbot.</string>
 
     <!-- Prominent trial CTA (direct build only) -->
