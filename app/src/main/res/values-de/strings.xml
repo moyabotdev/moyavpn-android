@@ -70,4 +70,10 @@
     <string name="widget_tap_connect">Zum Verbinden tippen</string>
     <string name="widget_tap_disconnect">Zum Trennen tippen</string>
     <string name="widget_login_first">App öffnen zum Anmelden</string>
+    <!-- Verbindungswächter (Auto-Failover) -->
+    <string name="watchdog_title">Verbindungswächter</string>
+    <string name="watchdog_desc">Prüft laufend, ob wirklich Daten durchkommen, und wechselt automatisch den Server, wenn der aktuelle blockiert wird.</string>
+    <string name="watchdog_notif_channel">Verbindungswächter</string>
+    <string name="watchdog_notif_title">Server gewechselt</string>
+    <string name="watchdog_notif_text">Blockade erkannt — neu verbunden über %1$s</string>
 </resources>

@@ -35,6 +35,7 @@ class WidgetProxyActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.moyavpn.app.vpn.ConnectivityWatchdog.start(this)
         when (intent?.action) {
             ACTION_TOGGLE -> onToggle()
             ACTION_SWITCH -> onSwitch()

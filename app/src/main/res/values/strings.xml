@@ -72,4 +72,10 @@
     <string name="widget_tap_connect">Tap to connect</string>
     <string name="widget_tap_disconnect">Tap to disconnect</string>
     <string name="widget_login_first">Open app to log in</string>
+    <!-- Connection guard (auto-failover watchdog) -->
+    <string name="watchdog_title">Connection guard</string>
+    <string name="watchdog_desc">Keeps checking whether data really gets through and automatically switches to another server if the current one gets blocked.</string>
+    <string name="watchdog_notif_channel">Connection guard</string>
+    <string name="watchdog_notif_title">Server switched</string>
+    <string name="watchdog_notif_text">Block detected — reconnected via %1$s</string>
 </resources>

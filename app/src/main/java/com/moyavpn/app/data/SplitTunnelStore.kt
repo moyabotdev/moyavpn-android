@@ -1,6 +1,7 @@
 package com.moyavpn.app.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -23,12 +24,20 @@ class SplitTunnelStore(private val context: Context) {
     private val keyPkgs = stringSetPreferencesKey("split_pkgs")
     private val keyFav = stringPreferencesKey("favorite_server")   // serverId des ⭐-Servers
     private val keyServers = stringPreferencesKey("cached_servers") // JSON der aktiven Server (fuer Widgets)
+    private val keyWatch = booleanPreferencesKey("watchdog_enabled") // Auto-Failover-Waechter
 
     val mode: Flow<String> = context.splitStore.data.map { it[keyMode] ?: MODE_OFF }
     val packages: Flow<Set<String>> = context.splitStore.data.map { it[keyPkgs] ?: emptySet() }
 
     /** ServerId des angehefteten Favoriten (Standard fuer Hero-Tap + Widgets); null = keiner. */
     val favorite: Flow<String?> = context.splitStore.data.map { it[keyFav] }
+
+    /**
+     * Verbindungswaechter aktiv? Standard **AN**: prueft bei laufender Verbindung
+     * regelmaessig gegen eine Westseite, ob wirklich Daten durchkommen, und rotiert
+     * bei Blockade automatisch auf den naechsten Server (siehe ConnectivityWatchdog).
+     */
+    val watchdog: Flow<Boolean> = context.splitStore.data.map { it[keyWatch] ?: true }
 
     /**
      * Zuletzt geladene aktive Verbindungen als leichtes Cache — damit die Widgets
@@ -55,6 +64,11 @@ class SplitTunnelStore(private val context: Context) {
 
     suspend fun cacheServers(servers: List<CachedServer>) {
         context.splitStore.edit { it[keyServers] = CachedServer.listToJson(servers) }
+    }
+
+    /** Verbindungswaechter an-/ausschalten. */
+    suspend fun setWatchdog(on: Boolean) {
+        context.splitStore.edit { it[keyWatch] = on }
     }
 
     companion object {

@@ -35,6 +35,7 @@ data class SettingsUi(
     val selected: Set<String> = emptySet(),
     val apps: List<AppEntry> = emptyList(),
     val loadingApps: Boolean = false,
+    val watchdog: Boolean = true,
 )
 
 /** Was der UI gerade anzeigen soll. */
@@ -90,6 +91,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
         // Favorit live spiegeln.
         viewModelScope.launch { splitStore.favorite.collect { _favorite.value = it } }
+        // Verbindungswaechter-Schalter live spiegeln.
+        viewModelScope.launch {
+            splitStore.watchdog.collect { w -> _settings.value = _settings.value.copy(watchdog = w) }
+        }
         checkUpdate()
     }
 
@@ -354,6 +359,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Split-Tunneling-Modus setzen (off/include/exclude). */
     fun setSplitMode(mode: String) {
         viewModelScope.launch { splitStore.setMode(mode) }
+    }
+
+    fun setWatchdog(on: Boolean) {
+        viewModelScope.launch { splitStore.setWatchdog(on) }
     }
 
     /** Eine App fuer Split-Tunneling an-/abwaehlen. */

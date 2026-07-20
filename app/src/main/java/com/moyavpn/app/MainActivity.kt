@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.moyavpn.app.vpn.ConnectivityWatchdog.start(this)
         handleDeepLink(intent)
         setContent {
             MoyaTheme {
@@ -66,6 +67,7 @@ class MainActivity : ComponentActivity() {
                         onMode = vm::setSplitMode,
                         onToggleApp = vm::toggleApp,
                         onAlwaysOn = ::openVpnSettings,
+                        onWatchdog = vm::setWatchdog,
                     )
                 } else {
                     MainScreen(

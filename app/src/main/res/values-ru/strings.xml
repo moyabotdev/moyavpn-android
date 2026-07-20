@@ -70,4 +70,10 @@
     <string name="widget_tap_connect">Нажмите для подключения</string>
     <string name="widget_tap_disconnect">Нажмите для отключения</string>
     <string name="widget_login_first">Откройте приложение для входа</string>
+    <!-- Страж соединения (авто-переключение) -->
+    <string name="watchdog_title">Страж соединения</string>
+    <string name="watchdog_desc">Постоянно проверяет, действительно ли проходят данные, и автоматически переключается на другой сервер, если текущий заблокирован.</string>
+    <string name="watchdog_notif_channel">Страж соединения</string>
+    <string name="watchdog_notif_title">Сервер переключён</string>
+    <string name="watchdog_notif_text">Обнаружена блокировка — переподключение через %1$s</string>
 </resources>

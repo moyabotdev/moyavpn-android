@@ -566,6 +566,7 @@ fun SettingsScreen(
     onMode: (String) -> Unit,
     onToggleApp: (String) -> Unit,
     onAlwaysOn: () -> Unit,
+    onWatchdog: (Boolean) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -583,6 +584,26 @@ fun SettingsScreen(
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
+            // ── Verbindungswaechter (Auto-Failover) ──
+            Row(
+                Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.watchdog_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(stringResource(R.string.watchdog_desc), style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(Modifier.width(12.dp))
+                Switch(checked = settings.watchdog, onCheckedChange = onWatchdog)
+            }
+
+            HorizontalDivider()
+
             // ── Always-on ──
             Column(Modifier.padding(16.dp)) {
                 Text(

@@ -64,7 +64,9 @@ private fun connectViews(
     activeSrv: CachedServer?,
 ): RemoteViews {
     val rv = RemoteViews(context.packageName, R.layout.widget_connect)
-    rv.setTextViewText(R.id.widget_title, context.getString(R.string.app_name))
+    rv.setInt(R.id.widget_root, "setBackgroundResource",
+        if (activeId != null) R.drawable.widget_bg_active else R.drawable.widget_bg)
+    rv.setTextViewText(R.id.widget_title, "🛡 " + context.getString(R.string.app_name))
     val status = when {
         connectingId != null -> "🟡 " + context.getString(R.string.status_connecting)
         activeId != null -> "🟢 " + context.getString(R.string.status_connected) +
@@ -82,6 +84,8 @@ private fun connectViews(
 
 private fun switchViews(context: Context, activeSrv: CachedServer?, connecting: Boolean): RemoteViews {
     val rv = RemoteViews(context.packageName, R.layout.widget_switch)
+    rv.setInt(R.id.widget_root, "setBackgroundResource",
+        if (activeSrv != null) R.drawable.widget_bg_active else R.drawable.widget_bg)
     rv.setTextViewText(R.id.widget_title, context.getString(R.string.widget_switch_title))
     val line = when {
         connecting -> "🟡 " + context.getString(R.string.status_connecting)
