@@ -96,14 +96,14 @@ jobs:
 
       - name: Stage APKs (stabile Namen)
         run: |
-          cp app/build/outputs/apk/direct/debug/app-direct-debug.apk app-debug.apk
+          cp app/build/outputs/apk/direct/debug/app-direct-debug.apk MoyaVPN.apk
           cp app/build/outputs/apk/play/debug/app-play-debug.apk app-play-debug.apk
 
       - name: Upload APK (Artefakt)
         uses: actions/upload-artifact@v4
         with:
           name: MoyaVPN-debug-apk
-          path: app-debug.apk
+          path: MoyaVPN.apk
           if-no-files-found: error
 
       # Versions-Manifest für den In-App-Updater (nur direct-Variante nutzt es).
@@ -115,14 +115,14 @@ jobs:
           {
             "version_code": ${{ github.run_number }},
             "version_name": "1.0.${{ github.run_number }}",
-            "url": "https://github.com/moyabotdev/moyavpn-android/releases/download/latest/app-debug.apk",
+            "url": "https://github.com/moyabotdev/moyavpn-android/releases/download/latest/MoyaVPN.apk",
             "notes": ""
           }
           EOF
           echo "version.json:"; cat version.json
 
       # Öffentliches Release mit stabiler Download-URL:
-      # https://github.com/moyabotdev/moyavpn-android/releases/download/latest/app-debug.apk
+      # https://github.com/moyabotdev/moyavpn-android/releases/download/latest/MoyaVPN.apk
       - name: Publish to GitHub Release (latest)
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
@@ -130,7 +130,7 @@ jobs:
           tag_name: latest
           name: MoyaVPN — neuester Build
           files: |
-            app-debug.apk
+            MoyaVPN.apk
             app-play-debug.apk
             version.json
           make_latest: true
