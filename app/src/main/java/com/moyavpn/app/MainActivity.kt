@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity() {
                         onToggleApp = vm::toggleApp,
                         onAlwaysOn = ::openVpnSettings,
                         onWatchdog = vm::setWatchdog,
+                        onAddWidget = ::openWidgetPicker,
                     )
                 } else {
                     MainScreen(
@@ -130,6 +131,25 @@ class MainActivity : ComponentActivity() {
     private fun openVpnSettings() {
         runCatching { startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) }
             .onFailure { runCatching { startActivity(Intent(Settings.ACTION_SETTINGS)) } }
+    }
+
+    /**
+     * Bittet das System, das Connect-Widget auf den Startbildschirm zu heften
+     * (System-Dialog „Widget hinzufügen"). Android bietet keine API, um die
+     * allgemeine Widget-Auswahl zu oeffnen; dies ist der unterstuetzte Weg.
+     * Launcher ohne Pin-Unterstuetzung → Hinweis, das Widget manuell zu setzen.
+     */
+    private fun openWidgetPicker() {
+        val mgr = android.appwidget.AppWidgetManager.getInstance(this)
+        val provider = android.content.ComponentName(this, com.moyavpn.app.widget.ConnectWidgetProvider::class.java)
+        val ok = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O &&
+            mgr.isRequestPinAppWidgetSupported &&
+            runCatching { mgr.requestPinAppWidget(provider, null, null) }.getOrDefault(false)
+        if (!ok) {
+            android.widget.Toast.makeText(
+                this, getString(R.string.widget_add_manual), android.widget.Toast.LENGTH_LONG,
+            ).show()
+        }
     }
 
     /**

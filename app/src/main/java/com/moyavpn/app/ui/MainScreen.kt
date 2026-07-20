@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Lock
@@ -750,6 +751,7 @@ fun SettingsScreen(
     onToggleApp: (String) -> Unit,
     onAlwaysOn: () -> Unit,
     onWatchdog: (Boolean) -> Unit,
+    onAddWidget: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -801,6 +803,25 @@ fun SettingsScreen(
                     Icon(Icons.Default.PowerSettingsNew, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.always_on_open))
+                }
+            }
+
+            HorizontalDivider()
+
+            // ── Widgets ──
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    stringResource(R.string.widget_add_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(stringResource(R.string.widget_add_desc), style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(10.dp))
+                FilledTonalButton(onClick = onAddWidget) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.widget_add_btn))
                 }
             }
 

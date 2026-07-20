@@ -86,4 +86,8 @@
     <string name="watchdog_premium_title">Автосмена сервера</string>
     <string name="watchdog_premium_desc">Автоматическая смена сервера при блокировке доступна с Premium (баланс времени и премиум-серверы). Вы всегда онлайн — блокировки распознаются и решаются автоматически.</string>
     <string name="close">Закрыть</string>
+    <string name="widget_add_title">Виджеты</string>
+    <string name="widget_add_desc">Добавьте виджеты MoyaVPN на главный экран — подключение и смена сервера в один тап.</string>
+    <string name="widget_add_btn">Добавить виджет на главный экран</string>
+    <string name="widget_add_manual">Ваш лаунчер не поддерживает это автоматически. Удерживайте главный экран, затем Виджеты, затем MoyaVPN.</string>
 </resources>

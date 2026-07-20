@@ -79,4 +79,8 @@
     <string name="watchdog_premium_title">Cambio automático de servidor</string>
     <string name="watchdog_premium_desc">El cambio automático de servidor cuando uno se bloquea está disponible con premium (crédito de tiempo y servidores premium). Siempre estás en línea — los bloqueos se detectan y resuelven automáticamente.</string>
     <string name="close">Cerrar</string>
+    <string name="widget_add_title">Widgets</string>
+    <string name="widget_add_desc">Añade los widgets de MoyaVPN a tu pantalla de inicio — conectar y cambiar de servidor con un toque.</string>
+    <string name="widget_add_btn">Añadir widget a la pantalla de inicio</string>
+    <string name="widget_add_manual">Tu launcher no lo permite automáticamente. Mantén pulsada la pantalla de inicio, luego Widgets, luego MoyaVPN.</string>
 </resources>

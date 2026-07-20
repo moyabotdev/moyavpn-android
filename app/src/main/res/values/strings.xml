@@ -88,4 +88,8 @@
     <string name="watchdog_premium_title">Auto server switch</string>
     <string name="watchdog_premium_desc">Automatic server switching when a server gets blocked is available with premium (time credit and premium servers). You stay online — blocks are detected and resolved automatically.</string>
     <string name="close">Close</string>
+    <string name="widget_add_title">Widgets</string>
+    <string name="widget_add_desc">Add MoyaVPN widgets to your home screen for one-tap connect and server switching.</string>
+    <string name="widget_add_btn">Add widget to home screen</string>
+    <string name="widget_add_manual">Your launcher does not support adding it automatically. Long-press the home screen, then Widgets, then MoyaVPN.</string>
 </resources>

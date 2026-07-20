@@ -86,4 +86,8 @@
     <string name="watchdog_premium_title">Automatischer Server-Wechsel</string>
     <string name="watchdog_premium_desc">Automatischer Server-Wechsel bei Sperren gibt es nur mit Premium (Zeitguthaben und Premium-Server). Damit bist du immer online — Blockaden werden automatisch erkannt und gelöst.</string>
     <string name="close">Schließen</string>
+    <string name="widget_add_title">Widgets</string>
+    <string name="widget_add_desc">Füge MoyaVPN-Widgets zum Startbildschirm hinzu — Verbinden und Server wechseln mit einem Tap.</string>
+    <string name="widget_add_btn">Widget zum Startbildschirm hinzufügen</string>
+    <string name="widget_add_manual">Dein Launcher unterstützt das nicht automatisch. Startbildschirm lange drücken, dann Widgets, dann MoyaVPN.</string>
 </resources>
