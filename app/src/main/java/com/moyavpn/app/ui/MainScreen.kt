@@ -54,6 +54,8 @@ fun MainScreen(
     update: UpdateInfo?,
     favoriteId: String?,
     pings: Map<String, Int>,
+    watchdogOn: Boolean,
+    onWatchdog: (Boolean) -> Unit,
     onLogin: (String) -> Unit,
     onToggle: (Connection) -> Unit,
     onHeroTap: () -> Unit,
@@ -85,7 +87,8 @@ fun MainScreen(
                         }
                     }
                     is UiState.Ready -> ReadyView(
-                        state, favoriteId, pings, onToggle, onHeroTap, onFavorite,
+                        state, favoriteId, pings, watchdogOn, onWatchdog,
+                        onToggle, onHeroTap, onFavorite,
                         onLogout, onOpenBot, onOpenSupport,
                         onGetAccess, onRefresh, onOpenSettings,
                     )
@@ -238,6 +241,8 @@ private fun ReadyView(
     state: UiState.Ready,
     favoriteId: String?,
     pings: Map<String, Int>,
+    watchdogOn: Boolean,
+    onWatchdog: (Boolean) -> Unit,
     onToggle: (Connection) -> Unit,
     onHeroTap: () -> Unit,
     onFavorite: (Connection) -> Unit,
@@ -291,9 +296,6 @@ private fun ReadyView(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(state.account.user.name, style = MaterialTheme.typography.titleMedium)
-                    state.account.user.expiresAt?.let {
-                        Text(stringResource(R.string.valid_until, it), style = MaterialTheme.typography.bodySmall)
-                    }
                 }
                 // Kauf-Link nur in der direct-Variante (Play-Store: ausgeblendet)
                 if (BuildConfig.SHOW_PURCHASE) {
@@ -349,6 +351,32 @@ private fun ReadyView(
                 }
             }
 
+            // Verbindungswächter — Schnellschalter direkt hier (auch in den Einstellungen).
+            Surface(
+                onClick = { onWatchdog(!watchdogOn) },
+                shape = RoundedCornerShape(12.dp),
+                color = if (watchdogOn) MaterialTheme.colorScheme.secondaryContainer
+                        else MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth(),
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("🛡", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.watchdog_title), style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            stringResource(if (watchdogOn) R.string.watchdog_on else R.string.watchdog_off),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(checked = watchdogOn, onCheckedChange = onWatchdog)
+                }
+            }
+
             Text(
                 stringResource(R.string.your_connections),
                 style = MaterialTheme.typography.labelLarge,
@@ -369,6 +397,18 @@ private fun ReadyView(
                         onClick = { onToggle(conn) },
                         onFavorite = { onFavorite(conn) },
                     )
+                }
+                // Ablaufzeit einmal, klein und ganz unten (gilt für alle Server).
+                state.account.user.expiresAt?.let { exp ->
+                    item {
+                        Text(
+                            stringResource(R.string.valid_until, exp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outline,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        )
+                    }
                 }
             }
         }
@@ -504,14 +544,16 @@ private fun ConnectionCard(
             Column(Modifier.weight(1f)) {
                 Text(conn.serverName, style = MaterialTheme.typography.titleMedium)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val sub = when (conn.status) {
-                        "active"   -> conn.expiresAt?.let { stringResource(R.string.until, it) }
-                                        ?: stringResource(R.string.status_active)
-                        "expired"  -> stringResource(R.string.status_expired)
-                        else        -> stringResource(R.string.status_disabled)
+                    if (disabled) {
+                        Text(
+                            if (conn.status == "expired") stringResource(R.string.status_expired)
+                            else stringResource(R.string.status_disabled),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    } else {
+                        // Ablaufzeit steht global unten (gilt für alle) — hier nur Empfang.
+                        SignalBars(pingMs)
                     }
-                    Text(sub, style = MaterialTheme.typography.bodySmall)
-                    if (!disabled) PingBadge(pingMs)
                 }
             }
             // Favoriten-Stern: nur fuer aktive Server sinnvoll.
@@ -540,18 +582,31 @@ private fun ConnectionCard(
     }
 }
 
-/** Kleine Latenz-Anzeige (nur Info): grün < 80 ms, gelb < 180 ms, sonst rot; „—" = nicht erreichbar. */
+/**
+ * Kompakte Empfangs-Anzeige (nur Info, statt ms-Zahlen — spart Platz):
+ * 4 kleine Balken wie ein Empfangsbereich. Grün = gut (<80 ms), gelb = ok
+ * (<180 ms), rot = schwach; keine gefüllten Balken = nicht erreichbar.
+ */
 @Composable
-private fun PingBadge(pingMs: Int?) {
-    if (pingMs == null) return   // noch nicht gemessen
-    Spacer(Modifier.width(8.dp))
-    val (label, color) = when {
-        pingMs == ServerPing.UNREACHABLE -> "—" to MaterialTheme.colorScheme.outline
-        pingMs < 80  -> "$pingMs ms" to Color(0xFF2E7D32)
-        pingMs < 180 -> "$pingMs ms" to Color(0xFFF9A825)
-        else         -> "$pingMs ms" to Color(0xFFC62828)
+private fun SignalBars(pingMs: Int?) {
+    val (filled, color) = when {
+        pingMs == null || pingMs == ServerPing.UNREACHABLE -> 0 to MaterialTheme.colorScheme.outline
+        pingMs < 80  -> 4 to Color(0xFF2E7D32)
+        pingMs < 180 -> 3 to Color(0xFFF9A825)
+        else         -> 2 to Color(0xFFC62828)
     }
-    Text("• $label", style = MaterialTheme.typography.bodySmall, color = color)
+    val muted = MaterialTheme.colorScheme.outlineVariant
+    Row(verticalAlignment = Alignment.Bottom) {
+        listOf(6.dp, 9.dp, 12.dp, 15.dp).forEachIndexed { i, h ->
+            Box(
+                Modifier
+                    .padding(end = 2.dp)
+                    .width(3.dp)
+                    .height(h)
+                    .background(if (i < filled) color else muted, RoundedCornerShape(1.dp))
+            )
+        }
+    }
 }
 
 /**

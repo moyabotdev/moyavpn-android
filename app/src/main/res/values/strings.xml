@@ -74,6 +74,8 @@
     <string name="widget_login_first">Open app to log in</string>
     <!-- Connection guard (auto-failover watchdog) -->
     <string name="watchdog_title">Connection guard</string>
+    <string name="watchdog_on">On — auto-switches when a server is blocked</string>
+    <string name="watchdog_off">Off</string>
     <string name="watchdog_desc">Keeps checking whether data really gets through and automatically switches to another server if the current one gets blocked.</string>
     <string name="watchdog_notif_channel">Connection guard</string>
     <string name="watchdog_notif_title">Server switched</string>

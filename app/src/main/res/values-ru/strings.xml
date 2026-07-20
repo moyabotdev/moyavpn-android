@@ -72,6 +72,8 @@
     <string name="widget_login_first">Откройте приложение для входа</string>
     <!-- Страж соединения (авто-переключение) -->
     <string name="watchdog_title">Страж соединения</string>
+    <string name="watchdog_on">Вкл — авто-переключение при блокировке</string>
+    <string name="watchdog_off">Выкл</string>
     <string name="watchdog_desc">Постоянно проверяет, действительно ли проходят данные, и автоматически переключается на другой сервер, если текущий заблокирован.</string>
     <string name="watchdog_notif_channel">Страж соединения</string>
     <string name="watchdog_notif_title">Сервер переключён</string>

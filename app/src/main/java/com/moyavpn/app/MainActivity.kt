@@ -75,6 +75,8 @@ class MainActivity : ComponentActivity() {
                         update = update,
                         favoriteId = favorite,
                         pings = pings,
+                        watchdogOn = settings.watchdog,
+                        onWatchdog = vm::setWatchdog,
                         onLogin = vm::login,
                         onToggle = { conn -> handleToggle(state, conn) },
                         onHeroTap = { handleHeroTap(state) },

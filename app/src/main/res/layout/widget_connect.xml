@@ -18,17 +18,17 @@
         android:textColor="#FFD37A"
         android:textStyle="bold"
         android:letterSpacing="0.02"
-        android:textSize="15sp" />
+        android:textSize="13sp" />
 
     <TextView
         android:id="@+id/widget_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="9dp"
+        android:layout_marginTop="7dp"
         android:text="⚪"
         android:textColor="#FFFFFFFF"
         android:textStyle="bold"
-        android:textSize="16sp"
+        android:textSize="13sp"
         android:maxLines="2"
         android:ellipsize="end" />
 
