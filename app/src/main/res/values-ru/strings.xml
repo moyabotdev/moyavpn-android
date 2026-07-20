@@ -21,13 +21,13 @@
     <string name="disconnect">Отключить</string>
     <string name="err_invalid_code">Неверный или просроченный код.</string>
     <string name="err_server">Не удалось связаться с сервером. Попробуйте позже.</string>
-    <string name="quick_connect">Быстрое подключение (тест 4 ч)</string>
-    <string name="trial_notice">Тест на 4 часа активен. Получите постоянный код доступа до окончания — затем выйдите и подключитесь заново.</string>
+    <string name="quick_connect">Бесплатный VPN · 100 МБ/день</string>
+    <string name="trial_notice">Вы на бесплатном сервере (100 МБ/день). Для безлимита и быстрых серверов — продлите в @moyavpnbot.</string>
     <string name="err_trial_limit">Лимит тестов исчерпан. Получите доступ в @moyavpnbot.</string>
 
     <!-- Заметная кнопка теста (только direct-сборка) -->
-    <string name="trial_big">Подключиться сейчас (4ч)</string>
-    <string name="trial_sub">без регистрации в Telegram-боте</string>
+    <string name="trial_big">Использовать бесплатно</string>
+    <string name="trial_sub">Бесплатный сервер · 100 МБ в день</string>
     <string name="have_code">Уже есть код?</string>
 
     <!-- Статус подключения -->
@@ -78,4 +78,6 @@
     <string name="watchdog_notif_channel">Страж соединения</string>
     <string name="watchdog_notif_title">Сервер переключён</string>
     <string name="watchdog_notif_text">Обнаружена блокировка — переподключение через %1$s</string>
+    <string name="connected_for">Подключено: %1$s</string>
+    <string name="upgrade_btn">Апгрейд — безлимит и быстрые серверы</string>
 </resources>

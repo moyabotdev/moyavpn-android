@@ -21,13 +21,13 @@
     <string name="disconnect">Trennen</string>
     <string name="err_invalid_code">Ungültiger oder abgelaufener Code.</string>
     <string name="err_server">Verbindung zum Server fehlgeschlagen. Bitte später erneut versuchen.</string>
-    <string name="quick_connect">Schnell verbinden (4h Test)</string>
-    <string name="trial_notice">4h-Test aktiv. Hol dir vor Ablauf einen dauerhaften Zugangscode — danach abmelden und neu verbinden.</string>
+    <string name="quick_connect">Gratis-VPN · 100 MB/Tag</string>
+    <string name="trial_notice">Du nutzt den Free-Server (100 MB/Tag). Für unbegrenztes Volumen und schnellere Server: Zeit nachkaufen in @moyavpnbot.</string>
     <string name="err_trial_limit">Test-Limit erreicht. Bitte hol dir Zugang in @moyavpnbot.</string>
 
     <!-- Prominenter Test-Button (nur direct-Build) -->
-    <string name="trial_big">Sofort verbinden (4h)</string>
-    <string name="trial_sub">ohne Anmeldung im Telegram Bot</string>
+    <string name="trial_big">Kostenlos verwenden</string>
+    <string name="trial_sub">Free-Server · 100 MB pro Tag</string>
     <string name="have_code">Schon einen Code?</string>
 
     <!-- Verbindungs-Status -->
@@ -78,4 +78,6 @@
     <string name="watchdog_notif_channel">Verbindungswächter</string>
     <string name="watchdog_notif_title">Server gewechselt</string>
     <string name="watchdog_notif_text">Blockade erkannt — neu verbunden über %1$s</string>
+    <string name="connected_for">Verbunden seit %1$s</string>
+    <string name="upgrade_btn">Upgrade — unbegrenzt &amp; schnellere Server</string>
 </resources>

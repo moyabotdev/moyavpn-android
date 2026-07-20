@@ -183,6 +183,13 @@ private fun LoginView(onLogin: (String) -> Unit, onGetAccess: () -> Unit, onQuic
                     )
                 }
             }
+            Spacer(Modifier.height(10.dp))
+            // Upgrade: unbegrenzt & schnellere Server → Telegram-Bot (Zeit nachkaufen).
+            OutlinedButton(onClick = onGetAccess, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.upgrade_btn))
+            }
             Spacer(Modifier.height(20.dp))
             Text(stringResource(R.string.have_code), style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(8.dp))
@@ -334,6 +341,7 @@ private fun ReadyView(
 
             if (state.activeServerId != null) {
                 TrafficBar(state.rxBytes, state.txBytes)
+                ConnectedTime()
             }
 
             state.connectError?.let { err ->
@@ -384,8 +392,8 @@ private fun ReadyView(
             )
 
             LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(state.account.connections) { conn ->
                     ConnectionCard(
@@ -536,13 +544,13 @@ private fun ConnectionCard(
     val disabled = conn.status != "active"
     ElevatedCard(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
+            Modifier.padding(start = 14.dp, top = 5.dp, bottom = 5.dp, end = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(conn.flag ?: "🌐", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.width(12.dp))
+            Text(conn.flag ?: "🌐", style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text(conn.serverName, style = MaterialTheme.typography.titleMedium)
+                Text(conn.serverName, style = MaterialTheme.typography.titleSmall)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (disabled) {
                         Text(
@@ -580,6 +588,29 @@ private fun ConnectionCard(
             }
         }
     }
+}
+
+/** Verbundene Zeit (Session-Dauer) des aktiven Servers — tickt jede Sekunde. */
+@Composable
+private fun ConnectedTime() {
+    val since by com.moyavpn.app.vpn.VpnState.connectedSince.collectAsState()
+    val start = since ?: return
+    var now by remember(start) { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(start) {
+        while (true) {
+            now = System.currentTimeMillis()
+            kotlinx.coroutines.delay(1000)
+        }
+    }
+    val secs = ((now - start) / 1000).coerceAtLeast(0)
+    val txt = if (secs >= 3600) "%d:%02d:%02d".format(secs / 3600, (secs % 3600) / 60, secs % 60)
+              else "%02d:%02d".format(secs / 60, secs % 60)
+    Text(
+        stringResource(R.string.connected_for, txt),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.outline,
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp),
+    )
 }
 
 /**

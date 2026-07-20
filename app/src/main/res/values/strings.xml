@@ -23,13 +23,13 @@
     <string name="disconnect">Disconnect</string>
     <string name="err_invalid_code">Invalid or expired code.</string>
     <string name="err_server">Could not reach the server. Please try again later.</string>
-    <string name="quick_connect">Quick connect (4-hour trial)</string>
-    <string name="trial_notice">4-hour trial active. Get a permanent access code before it ends — then log out and reconnect.</string>
+    <string name="quick_connect">Free VPN · 100 MB/day</string>
+    <string name="trial_notice">You're on the free server (100 MB/day). For unlimited data and faster servers, top up in @moyavpnbot.</string>
     <string name="err_trial_limit">Trial limit reached. Please get access in @moyavpnbot.</string>
 
     <!-- Prominent trial CTA (direct build only) -->
-    <string name="trial_big">Connect now (4h)</string>
-    <string name="trial_sub">no Telegram sign-up needed</string>
+    <string name="trial_big">Use for free</string>
+    <string name="trial_sub">Free server · 100 MB per day</string>
     <string name="have_code">Already have a code?</string>
 
     <!-- Connection hero -->
@@ -80,4 +80,6 @@
     <string name="watchdog_notif_channel">Connection guard</string>
     <string name="watchdog_notif_title">Server switched</string>
     <string name="watchdog_notif_text">Block detected — reconnected via %1$s</string>
+    <string name="connected_for">Connected for %1$s</string>
+    <string name="upgrade_btn">Upgrade — unlimited &amp; faster servers</string>
 </resources>

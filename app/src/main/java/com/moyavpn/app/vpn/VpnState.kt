@@ -21,7 +21,17 @@ object VpnState {
     /** ServerId, die gerade verbunden wird (Spinner/Widget-Status), oder null. */
     val connecting: StateFlow<String?> = _connecting.asStateFlow()
 
+    private val _connectedSince = MutableStateFlow<Long?>(null)
+    /** Zeitpunkt (ms) des Verbindungsaufbaus, oder null wenn getrennt — für die Uptime-Anzeige. */
+    val connectedSince: StateFlow<Long?> = _connectedSince.asStateFlow()
+
     fun setActive(serverId: String?) {
+        // Uptime-Start nur bei echtem Wechsel setzen; bei Trennung löschen.
+        if (serverId != null && _activeServerId.value != serverId) {
+            _connectedSince.value = System.currentTimeMillis()
+        } else if (serverId == null) {
+            _connectedSince.value = null
+        }
         _activeServerId.value = serverId
         _connecting.value = null
     }
