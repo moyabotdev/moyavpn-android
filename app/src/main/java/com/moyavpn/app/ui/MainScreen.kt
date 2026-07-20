@@ -413,13 +413,22 @@ private fun ReadyView(
                     title = { Text(stringResource(R.string.watchdog_premium_title)) },
                     text = { Text(stringResource(R.string.watchdog_premium_desc)) },
                     confirmButton = {
-                        TextButton(onClick = { showWatchdogUpsell = false; onGetAccess() }) {
-                            Text(stringResource(R.string.upgrade_btn))
+                        // Kauf-Steuerung nur in der direct-Variante (Play-Billing-Policy).
+                        if (BuildConfig.SHOW_PURCHASE) {
+                            TextButton(onClick = { showWatchdogUpsell = false; onGetAccess() }) {
+                                Text(stringResource(R.string.upgrade_btn))
+                            }
+                        } else {
+                            TextButton(onClick = { showWatchdogUpsell = false }) {
+                                Text(stringResource(R.string.close))
+                            }
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showWatchdogUpsell = false }) {
-                            Text(stringResource(R.string.close))
+                        if (BuildConfig.SHOW_PURCHASE) {
+                            TextButton(onClick = { showWatchdogUpsell = false }) {
+                                Text(stringResource(R.string.close))
+                            }
                         }
                     },
                 )
@@ -592,11 +601,15 @@ private fun FreeUsageCard(usedMb: Int, limitMb: Int, onUpgrade: () -> Unit) {
             Spacer(Modifier.height(6.dp))
             Text(stringResource(R.string.free_usage_remaining, remaining),
                 style = MaterialTheme.typography.labelSmall, color = onBg.copy(alpha = 0.8f))
-            Spacer(Modifier.height(10.dp))
-            FilledTonalButton(onClick = onUpgrade, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.upgrade_btn))
+            // Kauf-Steuerung nur in der direct-Variante (Play-Billing-Policy); der
+            // Verbrauchsbalken selbst bleibt in beiden Varianten sichtbar.
+            if (BuildConfig.SHOW_PURCHASE) {
+                Spacer(Modifier.height(10.dp))
+                FilledTonalButton(onClick = onUpgrade, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.upgrade_btn))
+                }
             }
         }
     }
