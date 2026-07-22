@@ -872,6 +872,17 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            if (settings.mode == SplitTunnelStore.MODE_OFF) Spacer(Modifier.weight(1f))
+
+            // ── App-Version (fuer Support-Anfragen) ──
+            Text(
+                stringResource(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }

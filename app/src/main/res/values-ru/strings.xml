@@ -90,4 +90,5 @@
     <string name="widget_add_desc">Добавьте виджеты MoyaVPN на главный экран — подключение и смена сервера в один тап.</string>
     <string name="widget_add_btn">Добавить виджет на главный экран</string>
     <string name="widget_add_manual">Ваш лаунчер не поддерживает это автоматически. Удерживайте главный экран, затем Виджеты, затем MoyaVPN.</string>
+    <string name="app_version">Версия %1$s (сборка %2$d)</string>
 </resources>
