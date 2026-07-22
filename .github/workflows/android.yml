@@ -15,11 +15,11 @@ jobs:
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - name: Checkout MoyaVPN
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # AmneziaWG-tunnel-Quellen (nativer Go/NDK-Build) — gepinnt auf v2.0.1
       - name: Checkout AmneziaWG tunnel source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: amnezia-vpn/amneziawg-android
           ref: v2.0.1
@@ -28,16 +28,16 @@ jobs:
           path: awg-src
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       # 16-KB-Page-Size: native Libs auf 16 KB ausrichten (Play-Pflicht ab targetSdk 35).
       # Flag fließt über CMAKE_*_LINKER_FLAGS in libwg/libwg-quick (executables) UND
@@ -100,10 +100,18 @@ jobs:
           cp app/build/outputs/apk/play/debug/app-play-debug.apk app-play-debug.apk
 
       - name: Upload APK (Artefakt)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: MoyaVPN-debug-apk
           path: MoyaVPN.apk
+          if-no-files-found: error
+
+      # Play-Variante als Artefakt → UI ohne Kauf-Buttons am Gerät prüfbar
+      - name: Upload Play debug APK (Artefakt)
+        uses: actions/upload-artifact@v6
+        with:
+          name: MoyaVPN-play-debug-apk
+          path: app-play-debug.apk
           if-no-files-found: error
 
       # Versions-Manifest für den In-App-Updater (nur direct-Variante nutzt es).
@@ -157,7 +165,7 @@ jobs:
 
       - name: Upload Play AAB
         if: env.HAS_KEYSTORE == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: MoyaVPN-play-aab
           path: MoyaVPN.aab

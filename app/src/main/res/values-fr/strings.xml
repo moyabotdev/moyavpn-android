@@ -83,4 +83,5 @@
     <string name="widget_add_desc">Ajoute les widgets MoyaVPN à ton écran d\'accueil — connecter et changer de serveur en un tap.</string>
     <string name="widget_add_btn">Ajouter le widget à l\'écran d\'accueil</string>
     <string name="widget_add_manual">Ton launcher ne le permet pas automatiquement. Appui long sur l\'écran d\'accueil, puis Widgets, puis MoyaVPN.</string>
+    <string name="app_version">Version %1$s (build %2$d)</string>
 </resources>

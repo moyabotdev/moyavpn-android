@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.moyavpn.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.moyavpn.app"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         // versionCode kommt in CI aus der GitHub-Run-Nummer → jeder Build ist ein Update.
         versionCode = (System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1)
         versionName = System.getenv("VERSION_NAME") ?: "1.0"
