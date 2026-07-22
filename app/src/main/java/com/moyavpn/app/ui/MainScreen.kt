@@ -24,6 +24,7 @@ import com.moyavpn.app.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
@@ -766,6 +767,13 @@ fun SettingsScreen(
     onWatchdog: (Boolean) -> Unit,
     onAddWidget: () -> Unit,
 ) {
+    // Split-Tunneling hat eine eigene Unterseite — die App-Liste braucht die volle Hoehe.
+    var showSplit by remember { mutableStateOf(false) }
+    if (showSplit) {
+        androidx.activity.compose.BackHandler { showSplit = false }
+        SplitTunnelScreen(settings, onBack = { showSplit = false }, onMode = onMode, onToggleApp = onToggleApp)
+        return
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -840,21 +848,87 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            // ── Split-Tunneling ──
-            Column(Modifier.padding(16.dp)) {
-                Text(
-                    stringResource(R.string.split_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(stringResource(R.string.split_desc), style = MaterialTheme.typography.bodySmall)
+            // ── Split-Tunneling → eigene Unterseite ──
+            Row(
+                Modifier.fillMaxWidth().clickable { showSplit = true }.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.split_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    val modeLabel = stringResource(
+                        when (settings.mode) {
+                            SplitTunnelStore.MODE_INCLUDE -> R.string.split_include
+                            SplitTunnelStore.MODE_EXCLUDE -> R.string.split_exclude
+                            else -> R.string.split_off
+                        },
+                    )
+                    val subtitle = if (settings.mode != SplitTunnelStore.MODE_OFF) {
+                        "$modeLabel · " + stringResource(R.string.split_selected_count, settings.selected.size)
+                    } else {
+                        modeLabel
+                    }
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall)
+                }
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
             }
+
+            Spacer(Modifier.weight(1f))
+
+            // ── App-Version (fuer Support-Anfragen) ──
+            Text(
+                stringResource(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+/**
+ * Unterseite der Einstellungen: Split-Tunneling mit App-Liste in voller Hoehe.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SplitTunnelScreen(
+    settings: SettingsUi,
+    onBack: () -> Unit,
+    onMode: (String) -> Unit,
+    onToggleApp: (String) -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.split_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                        )
+                    }
+                },
+            )
+        },
+    ) { pad ->
+        Column(Modifier.padding(pad).fillMaxSize()) {
+            Text(
+                stringResource(R.string.split_desc),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
             SplitModeOption(R.string.split_off, SplitTunnelStore.MODE_OFF, settings.mode, onMode)
             SplitModeOption(R.string.split_include, SplitTunnelStore.MODE_INCLUDE, settings.mode, onMode)
             SplitModeOption(R.string.split_exclude, SplitTunnelStore.MODE_EXCLUDE, settings.mode, onMode)
 
             if (settings.mode != SplitTunnelStore.MODE_OFF) {
+                HorizontalDivider()
                 Text(
                     stringResource(R.string.split_selected_count, settings.selected.size),
                     style = MaterialTheme.typography.labelMedium,
@@ -872,17 +946,6 @@ fun SettingsScreen(
                     }
                 }
             }
-
-            if (settings.mode == SplitTunnelStore.MODE_OFF) Spacer(Modifier.weight(1f))
-
-            // ── App-Version (fuer Support-Anfragen) ──
-            Text(
-                stringResource(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.fillMaxWidth().padding(12.dp),
-                textAlign = TextAlign.Center,
-            )
         }
     }
 }
