@@ -100,7 +100,7 @@ jobs:
           cp app/build/outputs/apk/play/debug/app-play-debug.apk app-play-debug.apk
 
       - name: Upload APK (Artefakt)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: MoyaVPN-debug-apk
           path: MoyaVPN.apk
@@ -108,7 +108,7 @@ jobs:
 
       # Play-Variante als Artefakt → UI ohne Kauf-Buttons am Gerät prüfbar
       - name: Upload Play debug APK (Artefakt)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: MoyaVPN-play-debug-apk
           path: app-play-debug.apk
@@ -165,7 +165,7 @@ jobs:
 
       - name: Upload Play AAB
         if: env.HAS_KEYSTORE == 'true'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: MoyaVPN-play-aab
           path: MoyaVPN.aab
